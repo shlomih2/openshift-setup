@@ -1,0 +1,1225 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://scaleops.com/helm.json",
+  "title": "ScaleOps Installation",
+  "description": "The root schema is the schema that comprises the entire JSON document.",
+  "type": "object",
+  "default": {},
+  "required": [
+    "scaleopsToken"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "disableSync": {
+      "deprecated": {
+        "deprecatedVersion": "1.2.81"
+      },
+      "type": ["boolean", "null"],
+      "default": false,
+      "examples": [
+        true
+      ]
+    },
+    "disableEgress": {
+      "deprecated": {
+        "deprecatedVersion": "1.2.81"
+      },
+      "type": ["boolean", "null"],
+      "default": false,
+      "examples": [
+        true
+      ]
+    },
+    "scaleopsRegion": {
+      "type": "string",
+      "default": "eu",
+      "examples": [
+        "us",
+        "eu"
+      ],
+      "enum": [
+        "eu",
+        "us"
+      ]
+    },
+    "syncLevel": {
+      "type": "integer",
+      "default": 1,
+      "enum": [
+        1,
+        2,
+        3
+      ]
+    },
+    "scaleopsToken": {
+      "title": "The scaleopsToken",
+      "description": "The installation token you have received from scaleops.",
+      "type": "string",
+      "default": "",
+      "minLength": 0,
+      "maxLength": 41
+    },
+    "googleServiceAccountCredentials": {
+      "title": "The googleServiceAccountCredentials Schema",
+      "description": "An explanation about the purpose of this instance.",
+      "type": "string",
+      "default": "",
+      "examples": [
+        ""
+      ]
+    },
+    "authConfigSecretName": {
+      "title": "The name of auth config secret",
+      "type": "string",
+      "default": "scaleops-auth-config",
+      "examples": [
+        "scaleops-auth-config"
+      ]
+    },
+    "authProvider": {
+      "title": "What should be used to authenticate with ScaleOps",
+      "description": "An explanation about the purpose of this instance.",
+      "type": "object",
+      "default": {},
+      "anyOf": [
+        {
+          "not": {
+            "properties": {
+              "rolesEnabled": { "const": "true" }
+            },
+            "required": ["rolesEnabled"]
+          }
+        },
+        { "required": ["defaultAdminGroup"] }
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "provider": {
+          "title": "The provider Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "type": "string",
+          "enum": ["", "none", "oauth2", "google", "github", "openshift", "builtInAuth", "azure", "okta"],
+          "default": "none"
+        },
+        "rolesEnabled": {
+          "title": "The rolesEnabled Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "type": "boolean",
+          "default": false,
+          "examples": [
+            true
+          ]
+        },
+        "defaultAdminGroups": {
+          "title": "The defaultAdminGroups Schema",
+          "description": "Default groups to configured as administrators.",
+          "items": {
+            "title": "A Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "type": "string",
+            "default": "",
+            "examples": [
+              "Group1"
+            ]
+          },
+          "uniqueItems": true,
+          "type": "array",
+          "default": "[]",
+          "examples": [
+            "scaleops-admins"
+          ]
+        },
+        "defaultOperatorGroups": {
+          "title": "The defaultOperatorGroups Schema",
+          "description": "Default groups to configured as operators.",
+          "items": {
+            "title": "A Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "type": "string",
+            "default": "",
+            "examples": [
+              "Group1"
+            ]
+          },
+          "uniqueItems": true,
+          "type": "array",
+          "default": "[]",
+          "examples": [
+            "scaleops-operators"
+          ]
+        },
+        "defaultViewerGroups": {
+          "title": "The defaultViewerGroups Schema",
+          "description": "Default groups to configured as viewers.",
+          "items": {
+            "title": "A Schema",
+            "description": "An explanation about the purpose of this instance.",
+            "type": "string",
+            "default": "",
+            "examples": [
+              "Group1"
+            ]
+          },
+          "uniqueItems": true,
+          "type": "array",
+          "default": "[]",
+          "examples": [
+            "scaleops-viewers"
+          ]
+        },
+        "defaultAdminGroup": {
+          "title": "The defaultAdminGroup Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "scaleops-admins"
+          ]
+        },
+        "defaultViewerGroup": {
+          "title": "The defaultViewerGroup Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "scaleops-viewers"
+          ]
+        },
+        "defaultOperatorGroup": {
+          "title": "The defaultOperatorGroup Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "type": "string",
+          "default": "",
+          "examples": [
+            "scaleops-operators"
+          ]
+        },
+        "groupsAPI": {
+          "title": "Groups API",
+          "description": "API Endpoint which translates bearer token to list of groups.",
+          "type": "object",
+          "default": {},
+          "required": ["enable","groupsAPIURL", "groupsAPIJSONPath"],
+          "properties": {
+            "enable": {
+                "title": "Enable",
+                "description": "Should we use the groups API to get the groups.",
+                "type": "boolean",
+                "default": false,
+                "examples": [
+                    true
+                ]
+            },
+            "groupsAPIURL": {
+              "title": "Groups API URL",
+              "description": "An API endpoint which gets a Authorization header and returns list of groups.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://groupsapi.com"
+              ]
+            },
+            "groupsAPIMethod": {
+              "title": "HTTP API Method",
+              "description": "The HTTP Method to use to call the API.",
+              "type": "string",
+              "enum": [
+                "GET",
+                "POST",
+                "PUT"
+              ],
+              "default": "GET",
+              "examples": [
+                "POST", "GET"
+              ]
+            },
+            "groupsAPIJSONPath": {
+                "title": "Groups API JSON Path",
+                "description": "The JSON Path to get the groups from the response.",
+                "type": "string",
+                "default": "",
+                "examples": [
+                    ".groups.id"
+                ]
+            }
+          }
+        },
+        "oauth2": {
+          "title": "The oauth2 Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "type": "object",
+          "default": {},
+          "required": [
+            "issuerUrl",
+            "clientID",
+            "clientSecret"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "audiences": {
+              "title": "The audiences Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "array",
+              "default": [],
+              "additionalItems": true,
+              "items": {
+                "title": "A Schema",
+                "description": "An explanation about the purpose of this instance.",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "api://default"
+                ]
+              },
+              "examples": [
+                [
+                  "api://default"
+                ]
+              ],
+              "uniqueItems": true
+            },
+            "issuerUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://idp"
+              ]
+            },
+            "authUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://idp/authorize"
+              ]
+            },
+            "tokenUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://idp/token"
+              ]
+            },
+            "clientID": {
+              "title": "The clientID Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_id"
+              ]
+            },
+            "clientSecret": {
+              "title": "The clientSecret Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_secret"
+              ]
+            },
+            "scopes": {
+              "title": "The scopes Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "array",
+              "default": [],
+              "additionalItems": true,
+              "items": {
+                "title": "A Schema",
+                "description": "An explanation about the purpose of this instance.",
+                "type": "string",
+                "examples": [
+                  "openid",
+                  "profile",
+                  "email"
+                ]
+              },
+              "examples": [
+                [
+                  "openid",
+                  "profile",
+                  "email"
+                ]
+              ],
+              "uniqueItems": true
+            },
+            "groupsClaim": {
+              "title": "The groupsClaim Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "groups"
+              ]
+            },
+            "skipIssuerCheck": {
+              "title": "skipIssuerCheck",
+              "description": "Should we verify the token issuer.",
+              "type": "boolean",
+              "default": false,
+              "examples": [
+                true
+              ]
+            }
+          },
+          "examples": [
+            {
+              "audiences": [
+                "api://default"
+              ],
+              "issuerUrl": "https://idp",
+              "clientID": "client_id",
+              "clientSecret": "client_secret",
+              "scopes": [
+                "openid",
+                "profile",
+                "email"
+              ],
+              "groupsClaim": "groups"
+            }
+          ]
+        },
+        "okta": {
+          "title": "The okta Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "type": "object",
+          "default": {},
+          "required": [
+            "issuerUrl",
+            "clientID",
+            "clientSecret"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "audiences": {
+              "title": "The audiences Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "array",
+              "default": [],
+              "additionalItems": true,
+              "items": {
+                "title": "A Schema",
+                "description": "An explanation about the purpose of this instance.",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "api://default"
+                ]
+              },
+              "examples": [
+                [
+                  "api://default"
+                ]
+              ],
+              "uniqueItems": true
+            },
+            "issuerUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://idp"
+              ]
+            },
+            "authUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://idp/authorize"
+              ]
+            },
+            "tokenUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://idp/token"
+              ]
+            },
+            "clientID": {
+              "title": "The clientID Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_id"
+              ]
+            },
+            "clientSecret": {
+              "title": "The clientSecret Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_secret"
+              ]
+            },
+            "scopes": {
+              "title": "The scopes Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "array",
+              "default": [],
+              "additionalItems": true,
+              "items": {
+                "title": "A Schema",
+                "description": "An explanation about the purpose of this instance.",
+                "type": "string",
+                "examples": [
+                  "openid",
+                  "profile",
+                  "email"
+                ]
+              },
+              "examples": [
+                [
+                  "openid",
+                  "profile",
+                  "email"
+                ]
+              ],
+              "uniqueItems": true
+            },
+            "groupsClaim": {
+              "title": "The groupsClaim Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "groups"
+              ]
+            },
+            "skipIssuerCheck": {
+              "title": "skipIssuerCheck",
+              "description": "Should we verify the token issuer.",
+              "type": "boolean",
+              "default": false,
+              "examples": [
+                true
+              ]
+            }
+          },
+          "examples": [
+            {
+              "audiences": [
+                "api://default"
+              ],
+              "issuerUrl": "https://idp",
+              "clientID": "client_id",
+              "clientSecret": "client_secret",
+              "scopes": [
+                "openid",
+                "profile",
+                "email"
+              ],
+              "groupsClaim": "groups"
+            }
+          ]
+        },
+        "azure": {
+          "title": "The azure Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "type": "object",
+          "default": {},
+          "required": [
+            "clientID",
+            "clientSecret"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "audiences": {
+              "title": "The audiences Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "array",
+              "default": [],
+              "additionalItems": true,
+              "items": {
+                "title": "A Schema",
+                "description": "An explanation about the purpose of this instance.",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "api://default"
+                ]
+              },
+              "examples": [
+                [
+                  "api://default"
+                ]
+              ],
+              "uniqueItems": true
+            },
+            "issuerUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://idp"
+              ]
+            },
+            "tenantID": {
+              "title": "The tenantID Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "tenant_id"
+              ]
+            },
+            "authUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://idp/authorize"
+              ]
+            },
+            "tokenUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "https://idp/token"
+              ]
+            },
+            "clientID": {
+              "title": "The clientID Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_id"
+              ]
+            },
+            "clientSecret": {
+              "title": "The clientSecret Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_secret"
+              ]
+            },
+            "scopes": {
+              "title": "The scopes Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "array",
+              "default": [],
+              "additionalItems": true,
+              "items": {
+                "title": "A Schema",
+                "description": "An explanation about the purpose of this instance.",
+                "type": "string",
+                "examples": [
+                  "openid",
+                  "profile",
+                  "email"
+                ]
+              },
+              "examples": [
+                [
+                  "openid",
+                  "profile",
+                  "email"
+                ]
+              ],
+              "uniqueItems": true
+            },
+            "groupsClaim": {
+              "title": "The groupsClaim Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "groups"
+              ]
+            },
+            "skipIssuerCheck": {
+              "title": "skipIssuerCheck",
+              "description": "Should we verify the token issuer.",
+              "type": "boolean",
+              "default": false,
+              "examples": [
+                true
+              ]
+            }
+          },
+          "examples": [
+            {
+              "audiences": [
+                "api://default"
+              ],
+              "issuerUrl": "https://idp",
+              "clientID": "client_id",
+              "clientSecret": "client_secret",
+              "scopes": [
+                "openid",
+                "profile",
+                "email"
+              ],
+              "groupsClaim": "groups"
+            }
+          ]
+        },
+        "google": {
+          "title": "The google Schema",
+          "description": "An explanation about the purpose of this instance.",
+          "type": "object",
+          "default": {},
+          "required": [
+            "clientID",
+            "clientSecret"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "clientID": {
+              "title": "The clientID Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_id"
+              ]
+            },
+            "clientSecret": {
+              "title": "The clientSecret Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_secret"
+              ]
+            },
+            "scopes": {
+              "title": "The scopes Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "array",
+              "default": [],
+              "additionalItems": true,
+              "items": {
+                "title": "A Schema",
+                "description": "An explanation about the purpose of this instance.",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "https://www.googleapis.com/auth/userinfo.email"
+                ]
+              },
+              "examples": [
+                [
+                  "https://www.googleapis.com/auth/userinfo.email"
+                ]
+              ],
+              "uniqueItems": true
+            },
+            "issuerUrl": {
+              "title": "The issuerUrl Schema",
+              "description": "An explanation about the purpose of this instance.",
+              "type": "array",
+              "default": [],
+              "additionalItems": true,
+              "items": {
+                "title": "A Schema",
+                "description": "An explanation about the purpose of this instance.",
+                "type": "string",
+                "default": "",
+                "examples": [
+                  "https://accounts.google.com/o/oauth2/v2/auth"
+                ]
+              },
+              "examples": [
+                [
+                  "https://accounts.google.com/o/oauth2/v2/auth"
+                ]
+              ],
+              "uniqueItems": true
+            }
+          },
+          "examples": [
+            {
+              "clientID": "client_id",
+              "clientSecret": "client_secret",
+              "scopes": [
+                "https://www.googleapis.com/auth/userinfo.email"
+              ],
+              "issuerUrl": [
+                "https://accounts.google.com/o/oauth2/v2/auth"
+              ]
+            }
+          ]
+        },
+        "github": {
+          "title": "Login With Github",
+          "description": "This config allows connecting with Github.",
+          "type": "object",
+          "default": {},
+          "required": [
+            "clientID",
+            "clientSecret"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "clientID": {
+              "title": "Client ID",
+              "description": "The client ID from the Github Application.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_id"
+              ]
+            },
+            "clientSecret": {
+              "title": "Client Secret",
+              "description": "The client secret from the Github application.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_secret"
+              ]
+            },
+            "orgs": {
+              "title": "Organizations",
+              "description": "List of all the organizations that we should get groups from.",
+              "type": "array",
+              "default": [],
+              "additionalItems": true,
+              "items": {
+                "title": "Organization",
+                "description": "Name of the organization that we should get groups from.",
+                "type": "object",
+                "default": "",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "title": "Name",
+                    "description": "Name of the organization that we should get groups from.",
+                    "type": "string",
+                    "default": "",
+                    "examples": [
+                      "scaleops"
+                    ]
+                  },
+                  "teams": {
+                    "title": "Teams",
+                    "description": "List of all the teams that we should get groups from.",
+                    "type": "array",
+                    "default": [],
+                    "additionalItems": true,
+                    "items": {
+                      "title": "Team",
+                      "description": "Name of the team that we should get groups from.",
+                      "type": "string",
+                      "default": "",
+                      "examples": [
+                        "scaleops-admins"
+                      ]
+                    }
+                  }
+                },
+                "examples": [
+                  {
+                    "name": "scaleops-sh",
+                    "teams": [
+                      "scaleops-admins"
+                    ]
+                  }
+                ]
+              },
+              "examples": [
+                [
+                  {
+                    "name": "scaleops-sh"
+                  }
+                ]
+              ],
+              "uniqueItems": true
+            },
+            "hostName": {
+              "title": "Hostname",
+              "description": "The hostname of the Github enterprise.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "git.scaleops.com"
+              ]
+            },
+            "rootCA": {
+              "title": "Root Certificate Authority",
+              "description": "The root CA to be used when calling the github enterprise endpoint.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "-----BEGIN CERTIFICATE-----\n.\n.\n.\n.\n-----END CERTIFICATE-----"
+              ]
+            },
+            "teamNameField": {
+              "title": "Team Name Field",
+              "description": "The which field from a team should be used as a name, if not set would use the Name.",
+              "type": "string",
+              "default": "",
+              "enum": [
+                "name",
+                "slug",
+                "both"
+              ],
+              "examples": [
+                "slug"
+              ]
+            },
+            "useLoginAsID": {
+              "title": "Use Login As ID",
+              "description": "If set to true, the login will be used as the ID, otherwise the ID will be used.",
+              "type": "boolean",
+              "default": false,
+              "examples": [
+                true
+              ]
+            },
+            "preferredEmailDomain": {
+              "title": "Preferred Email Domain",
+              "description": "If set, the email will be set to the login@preferredEmailDomain.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "scaleops.com"
+              ]
+            }
+          },
+          "examples": [
+            {
+              "clientID": "client_id",
+              "clientSecret": "client_secret"
+            }
+          ]
+        },
+        "openshift": {
+          "title": "Login OpenShift OAuth2",
+          "description": "This config allows connecting with OpenShift as SSO provider.",
+          "type": "object",
+          "default": {},
+          "required": [
+            "clientID",
+            "clientSecret"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "clientID": {
+              "title": "Client ID",
+              "description": "The client ID from the oauthclients.oauth.openshift.io.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_id"
+              ]
+            },
+            "clientSecret": {
+              "title": "Client Secret",
+              "description": "The client secret from the oauthclients.oauth.openshift.io.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "client_secret"
+              ]
+            },
+            "rootCA": {
+              "title": "Root Certificate Authority",
+              "description": "The root CA to be used when calling the auth server.",
+              "type": "string",
+              "default": "",
+              "examples": [
+                "-----BEGIN CERTIFICATE-----\n.\n.\n.\n.\n-----END CERTIFICATE-----"
+              ]
+            },
+            "insecureCA": {
+              "title": "Insecure CA",
+              "description": "If set we would not enforce valid TLS/SSL certificate check with the issuer.",
+              "type": "boolean",
+              "default": false,
+              "examples": [
+                true
+              ]
+            }
+          },
+          "examples": [
+            {
+              "clientID": "client_id",
+              "clientSecret": "client_secret"
+            }
+          ]
+        },
+        "simpleAuth": {
+          "title": "Simple auth authentication",
+          "description": "This config allows log in with built-in users.",
+          "type": "object",
+          "default": {},
+          "additionalProperties": false,
+          "deprecated": {
+            "deprecatedVersion": "1.4.4"
+          },
+          "properties": {
+            "enabled": {
+              "deprecated": {
+                "deprecatedVersion": "1.4.4"
+              },
+              "title": "Enabled",
+              "description": "Is simple auth enabled",
+              "type": "boolean",
+              "default": false,
+              "examples": [
+                false, true
+              ]
+            }
+          },
+          "examples": [
+            {
+              "enabled": true
+            }
+          ]
+        },
+        "builtInAuth": {
+          "title": "Built-in auth authentication",
+          "description": "This config allows log in with built-in users.",
+          "type": "object",
+          "default": {},
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "title": "Enabled",
+              "description": "Is built-in auth enabled",
+              "type": "boolean",
+              "default": false,
+              "examples": [
+                false, true
+              ]
+            }
+          },
+          "examples": [
+            {
+              "enabled": true
+            }
+          ]
+        }
+      }
+    },
+    "multicluster": {
+      "type": "object",
+      "default": {},
+      "title": "Setup Multi Cluster",
+      "required": [],
+      "properties": {
+        "tags": {
+          "type": "array",
+          "default": [],
+          "title": "Tags to be used to filter and authorize the cluster",
+          "items": {
+            "type": "string",
+            "title": "A Schema",
+            "examples": [
+              "dev",
+              "eu-west-1"
+            ]
+          },
+          "examples": [
+            [
+              "dev",
+              "eu-west-1"
+            ]
+          ]
+        },
+        "parent": {
+          "type": "object",
+          "default": {},
+          "title": "Connection instruction to the parent cluster",
+          "required": [
+            "url"
+          ],
+          "properties": {
+            "url": {
+              "type": "string",
+              "default": "",
+              "title": "The url Schema",
+              "examples": [
+                "https://scaleops.awesome.corp"
+              ]
+            },
+            "skipTLSCertValidation":{
+              "type": "boolean",
+              "default": false,
+              "title": "Skip TLS Verification for multi-cluster",
+              "examples": [
+                true
+              ]
+            },
+            "auth": {
+              "type": "object",
+              "default": {},
+              "title": "Authentication Schema",
+              "required": [],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "default": "",
+                  "enum": [
+                    "Oauth2ClientCredentials",
+                    "GoogleServiceAccount",
+                    "Github",
+                    "OpenShift",
+                    "BuiltInAuth",
+                    "SimpleAuth"
+                  ],
+                  "title": "The type Schema",
+                  "examples": [
+                    "Github"
+                  ]
+                },
+                "openshiftToken": {
+                  "type": "string",
+                  "default": "",
+                  "title": "The JWT token you get when running `oc create token --namespace scaleops-system scaleops-dashboards`",
+                  "examples": [
+                    "ey....."
+                  ]
+                },
+                "githubToken": {
+                  "type": "string",
+                  "default": "",
+                  "title": "The Personal access token that the child would use to authenticate with parent",
+                  "examples": [
+                    "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  ]
+                },
+                "clientId": {
+                  "type": "string",
+                  "default": "",
+                  "title": "The client ID for the Oauth2ClientCredentials flow.",
+                  "examples": [
+                    "client_id"
+                  ]
+                },
+                "clientSecret": {
+                  "type": "string",
+                  "default": "",
+                  "title": "The client secret for the Oauth2ClientCredentials flow.",
+                  "examples": [
+                    "client_secret"
+                  ]
+                },
+                "tokenUrl": {
+                  "type": "string",
+                  "default": "",
+                  "title": "The token url for the Oauth2ClientCredentials flow.",
+                  "examples": [
+                    "https://idp/token"
+                  ]
+                },
+                "scopes": {
+                  "type": "array",
+                  "default": [],
+                  "title": "scopes that the child cluster should ask for from the IDP",
+                  "items": {
+                    "type": "string",
+                    "default": "",
+                    "examples": [
+                      "openid",
+                      "profile",
+                      "email"
+                    ]
+                  },
+                  "examples": [
+                    [
+                      "openid",
+                      "profile",
+                      "email"
+                    ]
+                  ],
+                  "uniqueItems": true
+                },
+                "apiKey": {
+                  "title": "The api key Schema",
+                  "description": "A key that child cluster will use for authentication in multi-cluster configuration.",
+                  "type": "string",
+                  "default": "",
+                  "examples": [
+                    "SomeApiKey"
+                  ]
+                }
+              },
+              "examples": [
+                {
+                  "type": "Github",
+                  "githubToken": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                }
+              ]
+            }
+          },
+          "examples": [
+            {
+              "url": "",
+              "auth": {}
+            }
+          ]
+        }
+      },
+      "examples": [
+        {
+          "tags": [
+            "gke",
+            "vlad"
+          ],
+          "parent": {
+            "url": "",
+            "auth": {}
+          }
+        }
+      ]
+    }
+  },
+  "examples": [
+    {
+      "googleServiceAccountCredentials": "",
+      "authProvider": {
+        "rolesEnabled": true,
+        "defaultAdminGroup": "scaleops-admins",
+        "defaultViewerGroup": "scaleops-viewers",
+        "defaultOperatorGroup": "scaleops-operators",
+        "oauth2": {
+          "audiences": [
+            "api://default"
+          ],
+          "issuerUrl": "https://idp",
+          "clientID": "client_id",
+          "clientSecret": "client_secret",
+          "scopes": [
+            "openid",
+            "profile",
+            "email"
+          ],
+          "groupsClaim": "groups"
+        },
+        "google": {
+          "clientID": "client_id",
+          "clientSecret": "client_secret",
+          "scopes": [
+            "https://www.googleapis.com/auth/userinfo.email"
+          ],
+          "issuerUrl": [
+            "https://accounts.google.com/o/oauth2/v2/auth"
+          ]
+        }
+      }
+    }
+  ]
+}

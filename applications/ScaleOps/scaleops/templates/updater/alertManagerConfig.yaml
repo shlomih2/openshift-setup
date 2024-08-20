@@ -1,0 +1,18 @@
+{{/*apiVersion: monitoring.coreos.com/v1alpha1*/}}
+{{/*kind: AlertmanagerConfig*/}}
+{{/*metadata:*/}}
+{{/*  name: {{ include "scaleops.fullname" (merge .Values.updater (dict "Chart" .Chart "Release" .Release)) }}*/}}
+{{/*  labels:*/}}
+{{/*    alertmanagerConfig: {{ include "scaleops.fullname" (merge .Values.updater (dict "Chart" .Chart "Release" .Release)) }}*/}}
+{{/*spec:*/}}
+{{/*  route:*/}}
+{{/*    receiver: 'scaleopsScaler'*/}}
+{{/*    matchers:*/}}
+{{/*      - value: "alert"*/}}
+{{/*        name: "scaleops"*/}}
+{{/*        matchType: "="*/}}
+{{/*  receivers:*/}}
+{{/*    - name: 'scaleopsScaler'*/}}
+{{/*      webhookConfigs:*/}}
+{{/*        - url: "http://{{ include "scaleops.fullname" (merge .Values.updater (dict "Chart" .Chart "Release" .Release)) }}.{{.Release.Namespace}}.svc:{{.Values.updater.services.api.port}}"*/}}
+{{/*          sendResolved: true*/}}

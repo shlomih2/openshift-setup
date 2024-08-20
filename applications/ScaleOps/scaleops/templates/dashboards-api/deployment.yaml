@@ -1,0 +1,147 @@
+{{- if .Values.dashboard.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.dashboard (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.dashboard.nameOverride "image" .Values.dashboard.image )) | nindent 4 }}
+spec:
+  {{- if not .Values.dashboard.autoscaling.enabled }}
+  replicas: {{ .Values.dashboard.replicaCount }}
+  {{- end }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      {{- (include "scaleops.selectorLabels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.dashboard.nameOverride "image" .Values.dashboard.image )) | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- (include "scaleops.additionalAnnotations" (dict "Values" .Values "component" .Values.dashboard)) | nindent 8 }}
+      labels:
+        scaleops.sh: "true"
+        scaleops.sh/authProvider: "{{ template "authProvider" . }}"
+        scaleops.sh/rbacEnabled: "{{ .Values.authProvider.rolesEnabled }}"
+        {{- (include "scaleops.additionalLabels" (dict "Values" .Values "component" .Values.dashboard)) | nindent 8 }}
+        {{- (include "scaleops.selectorLabels" (dict "Release" .Release "nameOverride" .Values.dashboard.nameOverride)) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "scaleops.name" .Values.dashboard }}
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecretName }}
+      {{- (include "scaleops.securityContext" (dict "securityContext" .Values.dashboard.securityContext "Values" .Values)) | nindent 6 }}
+      volumes:
+        - name: scaleops-token
+          secret:
+            secretName: {{ .Values.global.imagePullSecretName }}
+            optional: true
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+        {{ include "scaleops.secretVolumes" . | nindent 8 }}
+      containers:
+        - name: dashboard
+          volumeMounts:
+            - name: scaleops-token
+              mountPath: /var/run/secrets/scaleops.sh/token/
+              readOnly: true
+            {{- include "scaleops.secretVolumeMounts" . | nindent 12 }}
+          {{- (include "scaleops.containerSecurityContext" (dict "containerSecurityContext" .Values.dashboard.containerSecurityContext "Values" .Values)) | nindent 10 }}
+          image: "{{.Values.dashboard.image.repository | default .Values.global.image.repository }}:{{ .Values.dashboard.image.tag | default .Values.global.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.dashboard.image.pullPolicy | default .Values.global.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: dashboard
+            - containerPort: 18080
+              name: internal
+            - containerPort: {{ .Values.dashboard.pprofPort }}
+              name: pprof
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 8080
+              scheme: HTTP
+            failureThreshold: {{ .Values.dashboard.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.dashboard.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.dashboard.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8080
+              scheme: HTTP
+            periodSeconds: {{ .Values.dashboard.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.dashboard.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.dashboard.readinessProbe.timeoutSeconds }}
+          command:
+            - /server
+            - dashboard-api
+            - --static
+            - /build
+            - --pprof-port={{- .Values.dashboard.pprofPort }}
+            - --https_proxy={{- .Values.httpsProxy }}
+            - --log_level={{ .Values.dashboard.logLevel | default .Values.global.logLevel  }}
+            - --zap-log-level={{ .Values.dashboard.logLevel | default .Values.global.logLevel  }}
+            - --prometheus_address
+            - http://{{ .Values.prometheusAddress }}
+            - --image-pull-secret-name={{ .Values.global.imagePullSecretName }}
+            - --cluster-name={{ .Values.clusterName }}
+            - --scaleops-region={{ .Values.scaleopsRegion }}
+            - --root-path={{ .Values.dashboard.rootPath }}
+            {{- include "scaleops.syncLevel" . | nindent 12 }}
+            {{- range .Values.dashboard.userIdHeaders }}
+            - --user-id-headers={{ . }}
+            {{- end }}
+            {{- range .Values.dashboard.extraArgs }}
+            - {{ . }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.dashboard.resources | nindent 12 }}
+          env:
+            - name: SCALEOPS_NETWORK_COST_ENABLED
+              value: "{{ .Values.global.enableNetworkMonitoring }}"
+            {{- if eq (include "isOpenShift" .) "true" }}
+            - name: ONPREM
+              value: "yes"
+             {{- end }}
+            - name: SCALEOPS_UI_READ_ONLY
+              {{- if .Values.readOnly }}
+              value: "true"
+              {{- else }}
+              value: "false"
+              {{- end }}
+            - name: SCALEOPS_GPU_COST_INCLUSION
+              value: {{ .Values.global.gpuCostInclusion }}
+            - name: GIN_MODE
+              value: release
+            - name: SCALEOPS_SSO_CONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authConfigSecretName }}
+                  key: auth
+                  optional: true
+            - name: SCALEOPS_UPDATER_ENABLED
+              value: "{{ .Values.updater.enabled }}"
+            - name: SCALEOPS_ADMISSIONS_ENABLED
+              value: "{{ .Values.admissions.enabled }}"
+            {{- with .Values.dashboard.extraEnvs }}
+              {{- toYaml . | nindent 12}}
+            {{end}}
+            {{- include "scaleops.secretEnvVars" . | nindent 12 }}
+      {{- with .Values.dashboard.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+        podAntiAffinity:
+          {{- toYaml .Values.dashboard.podAntiAffinity | nindent 12 }}
+        podAffinity:
+          {{- toYaml .Values.dashboard.podAffinity | nindent 12 }}
+        nodeAffinity:
+          {{- .Values.dashboard.nodeAffinity | default .Values.global.nodeAffinity | toYaml | nindent 12 }}
+      {{- with .Values.dashboard.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

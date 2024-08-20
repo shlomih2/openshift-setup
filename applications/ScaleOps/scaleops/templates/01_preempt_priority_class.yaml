@@ -1,0 +1,11 @@
+{{- if not .Values.global.disablePriorityClass -}}
+apiVersion: scheduling.k8s.io/v1
+description: Scaleops preempt priority
+kind: PriorityClass
+metadata:
+  name: scaleops-preempt-internal
+preemptionPolicy: PreemptLowerPriority
+# We want a value that is lower than system-cluster-critical (2000000000) and system-node-critical (2000001000)
+# but higher than all other priorities and still give space for some lee-way
+value: 1000000000
+{{- end }}

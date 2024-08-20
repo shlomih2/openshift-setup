@@ -1,0 +1,130 @@
+{{- if .Values.admissions.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.admissions (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.admissions.nameOverride "image" .Values.admissions.image )) | nindent 4 }}
+spec:
+  {{- if not .Values.admissions.autoscaling.enabled }}
+  replicas: {{ .Values.admissions.replicaCount }}
+  {{- end }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      {{- (include "scaleops.selectorLabels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.admissions.nameOverride "image" .Values.admissions.image )) | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- (include "scaleops.additionalAnnotations" (dict "Values" .Values "component" .Values.admissions)) | nindent 8 }}
+      labels:
+        scaleops.sh: "true"
+        {{- (include "scaleops.additionalLabels" (dict "Values" .Values "component" .Values.admissions)) | nindent 8 }}
+        {{- (include "scaleops.selectorLabels" (dict "Release" .Release "nameOverride" .Values.admissions.nameOverride)) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "scaleops.name" .Values.admissions }}
+      {{- if not .Values.global.disablePriorityClass }}
+      priorityClassName: scaleops-preempt-internal
+      {{- end }}
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecretName }}
+      {{- (include "scaleops.securityContext" (dict "securityContext" .Values.admissions.securityContext "Values" .Values)) | nindent 6 }}
+      volumes:
+        - name: cert
+          secret:
+            defaultMode: 420
+            secretName: {{ .Values.admissions.tls.secret | default "scaleops-admissions-tls"}}
+            optional: true
+        - name: scaleops-token
+          secret:
+            secretName: {{ .Values.global.imagePullSecretName }}
+            optional: true
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+        {{ include "scaleops.secretVolumes" . | nindent 8 }}
+      containers:
+        - name: admissions
+          ports:
+            - containerPort: {{ .Values.admissions.pprofPort }}
+              name: pprof
+            {{- $hostNetwork := .Values.admissions.hostNetwork }}
+            {{- $hostNetworkBindPort := .Values.admissions.hostNetworkBindPort }}
+            {{- range $key, $serviceValues := .Values.admissions.services }}
+            - containerPort: {{ if and (eq $key "admission") $hostNetwork }}{{ $hostNetworkBindPort }}{{ else }}{{ $serviceValues.targetPort }}{{ end }}
+              name: {{ $key | quote }}
+            {{- end }}
+          {{- (include "scaleops.containerSecurityContext" (dict "containerSecurityContext" .Values.admissions.containerSecurityContext "Values" .Values)) | nindent 10 }}
+          image: "{{.Values.admissions.image.repository | default .Values.global.image.repository }}:{{ .Values.admissions.image.tag | default .Values.global.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.admissions.image.pullPolicy | default .Values.global.image.pullPolicy }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9999
+              scheme: HTTP
+            failureThreshold: {{ .Values.admissions.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.admissions.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.admissions.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9999
+              scheme: HTTP
+            periodSeconds: {{ .Values.admissions.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.admissions.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.admissions.readinessProbe.timeoutSeconds }}
+
+          command:
+            - /server
+            - admissions-controller
+            - --health-probe-bind-address=:9999
+            - --metrics-bind-address=:{{- .Values.admissions.services.metrics.targetPort }}
+            {{- $admissionBindPort := .Values.admissions.services.admission.targetPort }}
+            {{- if .Values.admissions.hostNetwork }}
+            {{- $admissionBindPort = .Values.admissions.hostNetworkBindPort }}
+            {{- end }}
+            - --admissions-bind-port={{- $admissionBindPort }}
+            - --pprof-port={{- .Values.admissions.pprofPort }}
+            - --zap-log-level={{ .Values.admissions.logLevel | default .Values.global.logLevel }}
+            - --gen-cert={{ (not .Values.admissions.tls.certificate) }}
+            - --webhooks-service-name={{ include "scaleops.fullname" (merge .Values.admissions (dict "Chart" .Chart "Release" .Release)) }}
+            - --scaleops-admissions-certs-secret={{ .Values.admissions.tls.secret | default "scaleops-admissions-tls" }}
+            - --image-pull-secret-name={{ .Values.global.imagePullSecretName }}
+            - --cluster-name={{ .Values.clusterName }}
+            - --scaleops-region={{ .Values.scaleopsRegion }}
+          resources:
+            {{- toYaml .Values.admissions.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /tmp/k8s-webhook-server/serving-certs
+              name: cert
+              readOnly: true
+            - name: scaleops-token
+              mountPath: /var/run/secrets/scaleops.sh/token/
+              readOnly: true
+            {{- include "scaleops.secretVolumeMounts" . | nindent 12 }}
+          env:
+            {{- include "scaleops.secretEnvVars" . | nindent 12 }}
+      {{- with .Values.admissions.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+        podAntiAffinity:
+          {{- toYaml .Values.admissions.podAntiAffinity | nindent 12 }}
+        podAffinity:
+          {{- toYaml .Values.admissions.podAffinity | nindent 12 }}
+        nodeAffinity:
+          {{- .Values.admissions.nodeAffinity | default .Values.global.nodeAffinity | toYaml | nindent 12 }}
+      {{- with .Values.admissions.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.admissions.hostNetwork }}
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
+{{- end }}

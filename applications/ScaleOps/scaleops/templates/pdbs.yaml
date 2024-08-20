@@ -1,0 +1,85 @@
+{{- if .Values.pdbs.enable }}
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: scaleops-updater-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [ scaleops-updater ] }
+
+---
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: scaleops-recommender-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [ scaleops-recommender ] }
+
+---
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: scaleops-agent-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [ scaleops-agent ] }
+
+---
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: scaleops-dash-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [ scaleops-dashboards ] }
+
+---
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: scaleops-grafana-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [ grafana ] }
+
+---
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: scaleops-admissions-pdb
+spec:
+  minAvailable: 1
+  selector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [ scaleops-admissions ] }
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: alb-pdb
+  namespace: kube-system
+spec:
+  minAvailable: 1
+  selector:
+    matchExpressions:
+      - { key: app.kubernetes.io/name, operator: In, values: [ aws-load-balancer-controller ] }
+
+{{- end }}

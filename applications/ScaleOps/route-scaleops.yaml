@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: scaleops
+  name: scaleops
+  namespace: scaleops-system
+spec:
+  host: scaleops.apps.ocp-shlomi-lab-0.terasky.demo
+  port:
+    targetPort: https
+  tls:
+    insecureEdgeTerminationPolicy: Redirect
+    termination: reencrypt
+  to:
+    kind: Service
+    name: scaleops-dashboards

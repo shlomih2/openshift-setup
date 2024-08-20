@@ -1,0 +1,9 @@
+{{- if and (kindIs "map" .Values.namespace) .Values.namespace.annotations }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scaleops-namespace-annotations
+data:
+  annotations: |
+{{ toYaml .Values.namespace.annotations | indent 4 }}
+{{- end }}

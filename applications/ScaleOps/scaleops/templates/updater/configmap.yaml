@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scaleops-updater-config
+  annotations:
+    helm.sh/resource-policy: keep
+data:
+  {{- $labels := .Values.healthCheck.podLabels }}
+  {{- if .Values.healthCheck.defaultLabels.enabled }}
+  {{- $labels = merge $labels (omit .Values.healthCheck.defaultLabels "enabled") }}
+  {{- end }}
+  {{- if (.Values.healthCheck.disableIstioInjection | default .Values.global.disableIstioInjection) }}
+  {{- $labels = merge $labels (dict "sidecar.istio.io/inject" "false") }}
+  {{- end }}
+  {{- with $labels }}
+  healthCheckLabels: |
+    {{ toJson . | indent 4 }}
+  {{ end }}
+
+  healthCheckResources: |
+    {{ toJson .Values.healthCheck.resources | indent 4 }}

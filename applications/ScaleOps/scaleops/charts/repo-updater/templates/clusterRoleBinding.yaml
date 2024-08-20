@@ -1,0 +1,13 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "repo-updater.serviceAccountName" . }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "repo-updater.serviceAccountName" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "repo-updater.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}

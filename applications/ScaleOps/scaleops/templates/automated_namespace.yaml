@@ -1,0 +1,14 @@
+{{- if .Capabilities.APIVersions.Has "analysis.scaleops.sh/v1alpha1/AutomatedNamespace" }}
+{{- $conf := (lookup "analysis.scaleops.sh/v1alpha1" "AutomatedNamespace" .Release.Namespace "scaleops-system") }}
+{{ if (not $conf) }}
+---
+apiVersion: analysis.scaleops.sh/v1alpha1
+kind: AutomatedNamespace
+metadata:
+  name: scaleops-system
+spec:
+  defaultPolicy: production
+  optimize: true
+---
+{{- end }}
+{{- end}}

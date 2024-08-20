@@ -1,0 +1,108 @@
+apiVersion: analysis.scaleops.sh/v1alpha1
+kind: Policy
+metadata:
+  name: high-availability
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    scaleops.sh/builtin-policy: "true"
+spec:
+  type: Optimize
+  completionStrategy:
+    completionStrategyType: Periodical
+    periodSeconds: {{ .Values.policyDefaults.completionPeriodSeconds }}
+  policyOptimize:
+    rightSizePolicy:
+      window: 168h
+      windowByResource:
+        cpu: {{ .Values.policyDefaults.highAvailability.cpu.window }}
+        memory: {{ .Values.policyDefaults.highAvailability.memory.window }}
+      requestsConfigs:
+        cpu:
+          percentilePercentage: {{ .Values.policyDefaults.highAvailability.cpu.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.highAvailability.cpu.requestHeadroom }}
+          {{- if .Values.policyDefaults.highAvailability.cpu.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.highAvailability.cpu.minAllowed | quote }}
+          {{- end }}
+          {{- if .Values.policyDefaults.highAvailability.cpu.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.highAvailability.cpu.maxAllowed | quote }}
+          {{- end }}
+        memory:
+          percentilePercentage: {{ .Values.policyDefaults.highAvailability.memory.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.highAvailability.memory.requestHeadroom }}
+          {{- if .Values.policyDefaults.highAvailability.memory.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.highAvailability.memory.minAllowed | quote }}
+          {{ end }}
+          {{- if .Values.policyDefaults.highAvailability.memory.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.highAvailability.memory.maxAllowed | quote }}
+          {{ end }}
+      limitConfigs:
+        cpu:
+          keepLimit: {{ .Values.policyDefaults.highAvailability.cpu.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.highAvailability.cpu.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.highAvailability.cpu.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.highAvailability.cpu.limitHeadroom }}
+        memory:
+          keepLimit: {{ .Values.policyDefaults.highAvailability.memory.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.highAvailability.memory.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.highAvailability.memory.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.highAvailability.memory.limitHeadroom }}
+      hpaUtilTriggerRightsizeProtection: {{ .Values.policyDefaults.highAvailability.hpaUtilTriggerRightsizeProtection }}
+      nodeCappingPolicy:
+        nodeCappingAuto: {{ .Values.policyDefaults.highAvailability.nodeCappingAuto }}
+    {{- with .Values.policyDefaults.fastReaction }}
+    fastReaction:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+  updatePolicy:
+    updateByTypeMode:
+      deployment: {{ .Values.policyDefaults.highAvailability.updatePolicy.updateByTypeMode.deployment }}
+      statefulSet: {{ .Values.policyDefaults.highAvailability.updatePolicy.updateByTypeMode.statefulSet }}
+      daemonSet: {{ .Values.policyDefaults.highAvailability.updatePolicy.updateByTypeMode.daemonSet }}
+      job: {{ .Values.policyDefaults.highAvailability.updatePolicy.updateByTypeMode.job }}
+      family: {{ .Values.policyDefaults.highAvailability.updatePolicy.updateByTypeMode.family }}
+      deploymentConfig: {{ .Values.policyDefaults.highAvailability.updatePolicy.updateByTypeMode.deploymentConfig }}
+    requiredWindowCoveragePercentage: {{ .Values.policyDefaults.highAvailability.updatePolicy.requiredWindowCoveragePercentage }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    advancedBinPackCasLimitations: false
+{{- else }}
+    advancedBinPackCasLimitations: {{ .Values.policyDefaults.highAvailability.updatePolicy.advancedBinPackCasLimitations }}
+{{- end }}
+    bootTime: {{ .Values.policyDefaults.highAvailability.updatePolicy.bootTime }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictablePods: false
+{{- else }}
+    binPackUnEvictablePods: {{ .Values.policyDefaults.binPackUnEvictablePods }}
+{{- end }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictableNotHealthyPods: false
+{{- end }}
+    maxUnavailablePodsPercentage: {{ .Values.policyDefaults.highAvailability.updatePolicy.maxUnavailablePodsPercentage }}
+    minReplicas: 1
+    stabilizationWindowSeconds:
+      scaleDown: {{ .Values.policyDefaults.highAvailability.updatePolicy.stabilizationWindowSeconds.scaleDown }}
+      scaleUp: {{ .Values.policyDefaults.highAvailability.updatePolicy.stabilizationWindowSeconds.scaleUp }}
+    minScaleDownUnits:
+      cpu: {{ .Values.policyDefaults.highAvailability.updatePolicy.minScaleDownUnits.cpu }}
+      memory: {{ .Values.policyDefaults.highAvailability.updatePolicy.minScaleDownUnits.memory }}
+    minScaleUpUnits:
+      cpu: {{ .Values.policyDefaults.highAvailability.updatePolicy.minScaleUpUnits.cpu }}
+      memory: {{ .Values.policyDefaults.highAvailability.updatePolicy.minScaleUpUnits.memory }}
+    minScaleDownChangeDiff:
+      cpu: {{ .Values.policyDefaults.highAvailability.updatePolicy.minScaleDownRatio.cpu }}
+      memory: {{ .Values.policyDefaults.highAvailability.updatePolicy.minScaleDownRatio.memory }}
+    minScaleUpChangeDiff:
+      cpu: {{ .Values.policyDefaults.highAvailability.updatePolicy.minScaleUpRatio.cpu }}
+      memory: {{ .Values.policyDefaults.highAvailability.updatePolicy.minScaleUpRatio.memory }}
+    evictionSchedule:
+      scaleDown: '* * * * *'
+      scaleUp: '* * * * *'
+    allowRollingUpdate: {{ .Values.policyDefaults.highAvailability.updatePolicy.allowRollingUpdate }}
+    skipRolloutUponAutomation: {{ .Values.policyDefaults.highAvailability.updatePolicy.skipRolloutUponAutomation }}
+  autoHealing:
+    minSteps:
+      cpu: {{ .Values.policyDefaults.highAvailability.autoHealing.minSteps.cpu }}
+      memory: {{ .Values.policyDefaults.highAvailability.autoHealing.minSteps.memory }}
+    multiplier:
+      cpu: {{ .Values.policyDefaults.highAvailability.autoHealing.multiplier.cpu }}
+      memory: {{ .Values.policyDefaults.highAvailability.autoHealing.multiplier.memory }}

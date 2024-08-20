@@ -1,0 +1,15 @@
+{{- if .Values.global.enableNetworkMonitoring }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.networkMonitor.rbac.rolesInternal.name }}
+  # bind in scaleops-system namespace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.networkMonitor.rbac.rolesInternal.name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "scaleops.name" .Values.networkMonitor }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

@@ -1,0 +1,436 @@
+---
+{{- if .Values.agent.clusterRole.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "scaleops.name" .Values.agent }}
+rules:
+{{- if not .Values.restrictedRBACs }}
+{{- end }}
+  - apiGroups:
+      - 'source.toolkit.fluxcd.io'
+      - 'notification.toolkit.fluxcd.io'
+      - 'helm.toolkit.fluxcd.io'
+      - 'kustomize.toolkit.fluxcd.io'
+      - 'image.toolkit.fluxcd.io'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - 'kyverno.io'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'admissionregistration.k8s.io'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'security.istio.io'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'networking.istio.io'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'config.gatekeeper.sh'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'templates.gatekeeper.sh'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'constraints.gatekeeper.sh'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'analysis.scaleops.sh'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - create
+      - delete
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - pods/eviction
+    verbs:
+      - create
+  - apiGroups:
+      - apps
+      - extensions
+    resources:
+      - deployments
+      - replicasets
+      - statefulsets
+      - daemonsets
+      - deployments/scale
+      - replicasets/scale
+      - statefulsets/scale
+      - daemonsets/scale
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  - apiGroups:
+      - ''
+    resources:
+      - replicationcontrollers
+      - replicationcontrollers/scale
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+{{- if .Capabilities.APIVersions.Has "apps.openshift.io/v1/DeploymentConfig"}}
+  - apiGroups:
+      - apps.openshift.io
+    resources:
+      - deploymentconfigs
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  - apiGroups:
+      - quota.openshift.io
+    resources:
+      - clusterresourcequotas
+      - appliedclusterresourcequotas
+    verbs:
+      - get
+      - list
+      - watch
+{{- end }}
+  - apiGroups:
+      - batch
+    resources:
+      - cronjobs
+      - jobs
+      - cronjobs/scale
+      - jobs/scale
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - autoscaling.k8s.io
+    resources:
+      - verticalpodautoscalers
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'keda.sh'
+    resources:
+      - scaledjobs
+      - scaledobjects
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - sparkoperator.k8s.io
+    resources:
+      - sparkapplications
+      - sparkapplications/status
+      - scheduledsparkapplications
+      - scheduledsparkapplications/status
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - flink.k8s.io
+    resources:
+      - flinkapplications
+      - flinkapplications/status
+      - flinkapplications/finalizers
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - flink.apache.org
+    resources:
+      - flinkdeployments
+      - flinkdeployments/status
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ray.io
+    resources:
+      - rayclusters
+      - rayjobs
+      - rayservices
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - limitranges
+      - resourcequotas
+      - endpoints
+      - endpointslices
+      - services
+      - persistentvolumes
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses
+      - ingressclasses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'storage.k8s.io'
+    resources:
+      - csistoragecapacities
+      - csidrivers
+      - csinodes
+      - storageclasses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ''
+    resources:
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - '*'
+    resources:
+      - provisioners
+      - nodepools
+      - awsnodetemplates
+      - machines
+      - nodeclaims
+      - ec2nodeclasses
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ""
+    resources:
+      - nodes/proxy
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - create
+  - apiGroups:
+      - ''
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ''
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'admissionregistration.k8s.io'
+    resources:
+      - mutatingwebhookconfigurations
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'policy'
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'rbac.authorization.k8s.io'
+    resources:
+      - rolebindings
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+    - 'argoproj.io'
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - "metrics.k8s.io"
+    resources:
+      - pods
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - "monitoring.coreos.com"
+    resources:
+      - prometheusrules
+      - prometheuses
+      - prometheusagents
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - create
+      - get
+      - list
+  - apiGroups:
+      - apiregistration.k8s.io
+    resources:
+      - apiservices
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - '*'
+    resourceNames:
+      - autohealings.analysis.scaleops.sh
+      - policies.analysis.scaleops.sh
+      - recommendations.analysis.scaleops.sh
+      - automatednamespaces.analysis.scaleops.sh
+      - customownergroupings.analysis.scaleops.sh
+  - apiGroups:
+      - scheduling.k8s.io
+    resources:
+      - priorityclasses
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - networkpolicies
+    verbs:
+      - get
+      - list
+  - apiGroups:
+      - actions.summerwind.dev
+    resources:
+      - horizontalrunnerautoscalers
+      - runnerdeployments
+      - runnerreplicasets
+      - runners
+      - runnersets
+    verbs:
+      - get
+      - list
+      - watch
+{{- end }}

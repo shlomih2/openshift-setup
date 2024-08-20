@@ -1,0 +1,19 @@
+{{- if .Values.updater.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.updater (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.updater.nameOverride "image" .Values.updater.image )) | nindent 4 }}
+  annotations:
+    prometheus.io/port: "8080"
+spec:
+  type: {{ .Values.updater.serviceType }}
+  ports:
+  {{- range $key, $serviceValues := .Values.updater.services }}
+    - name: {{ $key }}
+      {{- toYaml $serviceValues | nindent 6}}
+  {{- end }}
+  selector:
+    {{- (include "scaleops.selectorLabels" (merge .Values.updater (dict "Chart" .Chart "Release" .Release))) | nindent 4 }}
+{{- end }}

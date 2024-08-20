@@ -1,0 +1,7 @@
+{{- $policyHeader := dict "apiVersion" "analysis.scaleops.sh/v1alpha1" "kind" "Policy"}}
+{{range  .Values.customPolicies }}
+{{- $policy := omit . "apiVersion" }}
+{{- $policy = omit $policy "kind" }}
+{{ merge $policy $policyHeader | toYaml }}
+---
+{{ end}}

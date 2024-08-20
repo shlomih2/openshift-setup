@@ -1,0 +1,16 @@
+apiVersion: v2
+appVersion: v1.6.13
+dependencies:
+- condition: prometheusEnabled
+  name: prometheus
+  repository: file://../prometheus
+  version: 25.8.*
+- condition: repoUpdaterEnabled
+  name: repo-updater
+  repository: file://../repo-updater
+  version: 0.0.*
+description: ScaleOps Helm chart
+icon: https://scaleops-sh.github.io/scaleops-sh/SacaleOps-5-transaprent.png
+name: scaleops
+type: application
+version: 1.6.13

@@ -1,0 +1,1 @@
+all the application and how to install the on openshift

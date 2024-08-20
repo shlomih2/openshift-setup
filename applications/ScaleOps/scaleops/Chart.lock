@@ -1,0 +1,9 @@
+dependencies:
+- name: prometheus
+  repository: file://../prometheus
+  version: 25.8.2
+- name: repo-updater
+  repository: file://../repo-updater
+  version: 0.0.13
+digest: sha256:4d70e0204366d2cdb57c43bd66c723a2f3ed1b7ee43896f561081b0ec36db983
+generated: "2023-12-21T12:04:55.653215+02:00"

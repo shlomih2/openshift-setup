@@ -1,0 +1,34 @@
+---
+{{- $conf := (lookup "v1" "ConfigMap" .Release.Namespace "scaleops-cost-conf") }}
+{{- if (not $conf) }}
+  {{- $includeUnallocated := false -}}
+  {{- if eq (include "isOpenShift" .) "false" }}
+    {{- $includeUnallocated = true -}}
+  {{- end }}
+apiVersion: v1
+data:
+  manual: '{"cpu":"0.031611","memory":"0.004237"}'
+  manual-spot: '{"cpu":"0.006655","memory":"0.000892"}'
+  include-unallocated: '{{ $includeUnallocated }}'
+kind: ConfigMap
+metadata:
+  name: scaleops-cost-conf
+  annotations:
+    helm.sh/resource-policy: keep
+{{- else }}
+  {{- $includeUnallocatedStr := index $conf.data "include-unallocated" -}}
+  {{- $manualCostStr := index $conf.data "manual" -}}
+  {{- $manualSpotCostStr := index $conf.data "manual-spot" -}}
+
+apiVersion: v1
+data:
+  manual: '{{ $manualCostStr }}'
+  manual-spot: '{{ $manualSpotCostStr }}'
+  include-unallocated: '{{ $includeUnallocatedStr }}'
+kind: ConfigMap
+metadata:
+  name: scaleops-cost-conf
+  annotations:
+    helm.sh/resource-policy: keep
+{{- end }}
+---

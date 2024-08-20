@@ -1,0 +1,24 @@
+{{- if .Values.admissions.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.admissions (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.admissions.nameOverride "image" .Values.admissions.image )) | nindent 4 }}
+spec:
+  type: {{ .Values.admissions.serviceType }}
+  ports:
+  {{- $hostNetwork := .Values.admissions.hostNetwork }}
+  {{- $hostNetworkBindPort := .Values.admissions.hostNetworkBindPort }}
+  {{- range $key, $serviceValues := .Values.admissions.services }}
+    - name: {{ $key }}
+      {{- if and (eq $key "admission") $hostNetwork }}
+      targetPort: {{ $hostNetworkBindPort }}
+      {{- toYaml (omit $serviceValues "targetPort") | nindent 6}}
+      {{- else }}
+      {{- toYaml $serviceValues | nindent 6}}
+      {{- end }}
+  {{- end }}
+  selector:
+    {{- (include "scaleops.selectorLabels" (merge .Values.admissions (dict "Chart" .Chart "Release" .Release))) | nindent 4 }}
+{{- end }}

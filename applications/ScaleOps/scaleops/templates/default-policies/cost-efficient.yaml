@@ -1,0 +1,108 @@
+apiVersion: analysis.scaleops.sh/v1alpha1
+kind: Policy
+metadata:
+  name: cost
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    scaleops.sh/builtin-policy: "true"
+spec:
+  type: Optimize
+  completionStrategy:
+    completionStrategyType: Periodical
+    periodSeconds: {{ .Values.policyDefaults.completionPeriodSeconds }}
+  policyOptimize:
+    rightSizePolicy:
+      window: {{ .Values.policyDefaults.costEfficient.cpu.window }}
+      windowByResource:
+        cpu: {{ .Values.policyDefaults.costEfficient.cpu.window }}
+        memory: {{ .Values.policyDefaults.costEfficient.memory.window }}
+      requestsConfigs:
+        cpu:
+          percentilePercentage: {{ .Values.policyDefaults.costEfficient.cpu.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.costEfficient.cpu.requestHeadroom }}
+          {{- if .Values.policyDefaults.costEfficient.cpu.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.costEfficient.cpu.minAllowed | quote }}
+          {{- end }}
+          {{- if .Values.policyDefaults.costEfficient.cpu.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.costEfficient.cpu.maxAllowed | quote }}
+          {{- end }}
+        memory:
+          percentilePercentage: {{ .Values.policyDefaults.costEfficient.memory.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.costEfficient.memory.requestHeadroom }}
+          {{- if .Values.policyDefaults.costEfficient.memory.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.costEfficient.memory.minAllowed | quote }}
+          {{- end }}
+          {{- if .Values.policyDefaults.costEfficient.memory.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.costEfficient.memory.maxAllowed | quote }}
+          {{- end }}
+      limitConfigs:
+        cpu:
+          keepLimit: {{ .Values.policyDefaults.costEfficient.cpu.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.costEfficient.cpu.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.costEfficient.cpu.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.costEfficient.cpu.limitHeadroom }}
+        memory:
+          keepLimit: {{ .Values.policyDefaults.costEfficient.memory.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.costEfficient.memory.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.costEfficient.memory.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.costEfficient.memory.limitHeadroom }}
+      hpaUtilTriggerRightsizeProtection: {{ .Values.policyDefaults.costEfficient.hpaUtilTriggerRightsizeProtection }}
+      nodeCappingPolicy:
+        nodeCappingAuto: {{ .Values.policyDefaults.costEfficient.nodeCappingAuto }}
+    {{- with .Values.policyDefaults.fastReaction }}
+    fastReaction:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+  updatePolicy:
+    updateByTypeMode:
+      deployment: {{ .Values.policyDefaults.costEfficient.updatePolicy.updateByTypeMode.deployment }}
+      statefulSet: {{ .Values.policyDefaults.costEfficient.updatePolicy.updateByTypeMode.statefulSet }}
+      daemonSet: {{ .Values.policyDefaults.costEfficient.updatePolicy.updateByTypeMode.daemonSet }}
+      job: {{ .Values.policyDefaults.costEfficient.updatePolicy.updateByTypeMode.job }}
+      family: {{ .Values.policyDefaults.costEfficient.updatePolicy.updateByTypeMode.family }}
+      deploymentConfig: {{ .Values.policyDefaults.costEfficient.updatePolicy.updateByTypeMode.deploymentConfig }}
+    requiredWindowCoveragePercentage: {{ .Values.policyDefaults.costEfficient.updatePolicy.requiredWindowCoveragePercentage }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    advancedBinPackCasLimitations: false
+{{- else }}
+    advancedBinPackCasLimitations: {{ .Values.policyDefaults.costEfficient.updatePolicy.advancedBinPackCasLimitations }}
+{{- end }}
+    bootTime: {{ .Values.policyDefaults.costEfficient.updatePolicy.bootTime }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictablePods: false
+{{- else }}
+    binPackUnEvictablePods: {{ .Values.policyDefaults.binPackUnEvictablePods }}
+{{- end }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictableNotHealthyPods: false
+{{- end }}
+    maxUnavailablePodsPercentage: {{ .Values.policyDefaults.costEfficient.updatePolicy.maxUnavailablePodsPercentage }}
+    minReplicas: {{ .Values.policyDefaults.costEfficient.updatePolicy.minReplicas }}
+    stabilizationWindowSeconds:
+      scaleDown: {{ .Values.policyDefaults.costEfficient.updatePolicy.stabilizationWindowSeconds.scaleDown }}
+      scaleUp: {{ .Values.policyDefaults.costEfficient.updatePolicy.stabilizationWindowSeconds.scaleUp }}
+    minScaleDownUnits:
+      cpu: {{ .Values.policyDefaults.costEfficient.updatePolicy.minScaleDownUnits.cpu }}
+      memory: {{ .Values.policyDefaults.costEfficient.updatePolicy.minScaleDownUnits.memory }}
+    minScaleUpUnits:
+      cpu: {{ .Values.policyDefaults.costEfficient.updatePolicy.minScaleUpUnits.cpu }}
+      memory: {{ .Values.policyDefaults.costEfficient.updatePolicy.minScaleUpUnits.memory }}
+    minScaleDownChangeDiff:
+      cpu: {{ .Values.policyDefaults.costEfficient.updatePolicy.minScaleDownRatio.cpu }}
+      memory: {{ .Values.policyDefaults.costEfficient.updatePolicy.minScaleDownRatio.memory }}
+    minScaleUpChangeDiff:
+      cpu: {{ .Values.policyDefaults.costEfficient.updatePolicy.minScaleUpRatio.cpu }}
+      memory: {{ .Values.policyDefaults.costEfficient.updatePolicy.minScaleUpRatio.memory }}
+    evictionSchedule:
+      scaleDown: '* * * * *'
+      scaleUp: '* * * * *'
+    allowRollingUpdate: {{ .Values.policyDefaults.costEfficient.updatePolicy.allowRollingUpdate }}
+    skipRolloutUponAutomation: {{ .Values.policyDefaults.costEfficient.updatePolicy.skipRolloutUponAutomation }}
+  autoHealing:
+    minSteps:
+      cpu: {{ .Values.policyDefaults.costEfficient.autoHealing.minSteps.cpu }}
+      memory: {{ .Values.policyDefaults.costEfficient.autoHealing.minSteps.memory }}
+    multiplier:
+      cpu: {{ .Values.policyDefaults.costEfficient.autoHealing.multiplier.cpu }}
+      memory: {{ .Values.policyDefaults.costEfficient.autoHealing.multiplier.memory }}

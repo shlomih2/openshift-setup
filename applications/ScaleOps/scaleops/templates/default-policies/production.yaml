@@ -1,0 +1,113 @@
+apiVersion: analysis.scaleops.sh/v1alpha1
+kind: Policy
+metadata:
+  name: production
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    scaleops.sh/builtin-policy: "true"
+
+spec:
+  type: Optimize
+  completionStrategy:
+    completionStrategyType: Periodical
+    periodSeconds: {{ .Values.policyDefaults.completionPeriodSeconds }}
+  policyOptimize:
+    rightSizePolicy:
+      window: 48h
+      windowByResource:
+        cpu: {{ .Values.policyDefaults.production.cpu.window }}
+        memory: {{ .Values.policyDefaults.production.memory.window }}
+      requestsConfigs:
+        cpu:
+          percentilePercentage: {{ .Values.policyDefaults.production.cpu.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.production.cpu.requestHeadroom }}
+          {{- if .Values.policyDefaults.production.cpu.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.production.cpu.minAllowed | quote }}
+          {{- end }}
+          {{- if .Values.policyDefaults.production.cpu.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.production.cpu.maxAllowed | quote }}
+          {{- end }}
+        memory:
+          percentilePercentage: {{ .Values.policyDefaults.production.memory.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.production.memory.requestHeadroom }}
+          {{- if .Values.policyDefaults.production.memory.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.production.memory.minAllowed | quote }}
+          {{- end }}
+          {{- if .Values.policyDefaults.production.memory.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.production.memory.maxAllowed | quote }}
+          {{- end }}
+      limitConfigs:
+        cpu:
+          keepLimit: {{ .Values.policyDefaults.production.cpu.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.production.cpu.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.production.cpu.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.production.cpu.limitHeadroom }}
+        memory:
+          keepLimit: {{ .Values.policyDefaults.production.memory.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.production.memory.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.production.memory.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.production.memory.limitHeadroom }}
+      hpaUtilTriggerRightsizeProtection: {{ .Values.policyDefaults.production.hpaUtilTriggerRightsizeProtection }}
+      nodeCappingPolicy:
+        nodeCappingAuto: {{ .Values.policyDefaults.production.nodeCappingAuto }}
+    {{- with .Values.policyDefaults.fastReaction }}
+    fastReaction:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+  updatePolicy:
+    updateByTypeMode:
+      deployment: {{ .Values.policyDefaults.production.updatePolicy.updateByTypeMode.deployment }}
+      statefulSet: {{ .Values.policyDefaults.production.updatePolicy.updateByTypeMode.statefulSet }}
+      daemonSet: {{ .Values.policyDefaults.production.updatePolicy.updateByTypeMode.daemonSet }}
+      job: {{ .Values.policyDefaults.production.updatePolicy.updateByTypeMode.job }}
+      family: {{ .Values.policyDefaults.production.updatePolicy.updateByTypeMode.family }}
+      deploymentConfig: {{ .Values.policyDefaults.production.updatePolicy.updateByTypeMode.deploymentConfig }}
+    {{- if or .Values.prometheus.localPath .Values.prometheus.emptyDir }}
+    requiredWindowCoveragePercentage: {{ .Values.policyDefaults.production.updatePolicy.requiredWindowCoveragePercentageLocalStorage }}
+    {{- else }}
+    requiredWindowCoveragePercentage: {{ .Values.policyDefaults.production.updatePolicy.requiredWindowCoveragePercentage }}
+    {{- end }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    advancedBinPackCasLimitations: false
+{{- else }}
+    advancedBinPackCasLimitations: {{ .Values.policyDefaults.production.updatePolicy.advancedBinPackCasLimitations }}
+{{- end }}
+    bootTime: {{ .Values.policyDefaults.production.updatePolicy.bootTime }}
+    maxUnavailablePodsPercentage: {{ .Values.policyDefaults.production.updatePolicy.maxUnavailablePodsPercentage }}
+    minReplicas: {{ .Values.policyDefaults.production.updatePolicy.minReplicas }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictablePods: false
+{{- else }}
+    binPackUnEvictablePods: {{ .Values.policyDefaults.binPackUnEvictablePods }}
+{{- end }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictableNotHealthyPods: false
+{{- end }}
+    stabilizationWindowSeconds:
+      scaleDown: {{ .Values.policyDefaults.production.updatePolicy.stabilizationWindowSeconds.scaleDown }}
+      scaleUp: {{ .Values.policyDefaults.production.updatePolicy.stabilizationWindowSeconds.scaleUp }}
+    minScaleDownUnits:
+      cpu: {{ .Values.policyDefaults.production.updatePolicy.minScaleDownUnits.cpu }}
+      memory: {{ .Values.policyDefaults.production.updatePolicy.minScaleDownUnits.memory }}
+    minScaleUpUnits:
+      cpu: {{ .Values.policyDefaults.production.updatePolicy.minScaleUpUnits.cpu }}
+      memory: {{ .Values.policyDefaults.production.updatePolicy.minScaleUpUnits.memory }}
+    minScaleDownChangeDiff:
+      cpu: {{ .Values.policyDefaults.production.updatePolicy.minScaleDownRatio.cpu }}
+      memory: {{ .Values.policyDefaults.production.updatePolicy.minScaleDownRatio.memory }}
+    minScaleUpChangeDiff:
+      cpu: {{ .Values.policyDefaults.production.updatePolicy.minScaleUpRatio.cpu }}
+      memory: {{ .Values.policyDefaults.production.updatePolicy.minScaleUpRatio.memory }}
+    evictionSchedule:
+      scaleDown: '* * * * *'
+      scaleUp: '* * * * *'
+    allowRollingUpdate: {{ .Values.policyDefaults.production.updatePolicy.allowRollingUpdate }}
+    skipRolloutUponAutomation: {{ .Values.policyDefaults.production.updatePolicy.skipRolloutUponAutomation }}
+  autoHealing:
+    minSteps:
+      cpu: {{ .Values.policyDefaults.production.autoHealing.minSteps.cpu }}
+      memory: {{ .Values.policyDefaults.production.autoHealing.minSteps.memory }}
+    multiplier:
+      cpu: {{ .Values.policyDefaults.production.autoHealing.multiplier.cpu }}
+      memory: {{ .Values.policyDefaults.production.autoHealing.multiplier.memory }}

@@ -1,0 +1,16 @@
+{{- if .Values.dashboard.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.dashboard (dict "Chart" .Chart "Release" .Release)) }}-internal
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.dashboard.nameOverride "image" .Values.dashboard.image )) | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: internal
+      port: 8080
+      targetPort: internal
+  selector:
+    {{- (include "scaleops.selectorLabels" (merge .Values.dashboard (dict "Chart" .Chart "Release" .Release))) | nindent 4 }}
+{{- end }}

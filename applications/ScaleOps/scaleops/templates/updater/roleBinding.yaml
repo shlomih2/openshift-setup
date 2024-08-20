@@ -1,0 +1,16 @@
+---
+{{- if .Values.updater.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.updater.rbac.roleInternal.name }}
+  # bind in scaleops-system namespace
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ .Values.updater.rbac.roleInternal.name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "scaleops.serviceAccountName" .Values.updater }}
+    namespace: {{ .Release.Namespace }}
+{{- end }}

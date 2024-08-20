@@ -1,0 +1,21 @@
+{{- if .Values.dashboard.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.dashboard (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.dashboard.nameOverride "image" .Values.dashboard.image )) | nindent 4 }}
+  {{- with .Values.dashboard.serviceAnnotations }}
+  annotations:
+  {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.dashboard.serviceType }}
+  ports:
+  {{- range $key, $serviceValues := .Values.dashboard.services }}
+    - name: {{ $key }}
+      {{- toYaml $serviceValues | nindent 6}}
+  {{- end }}
+  selector:
+    {{- (include "scaleops.selectorLabels" (merge .Values.dashboard (dict "Chart" .Chart "Release" .Release))) | nindent 4 }}
+{{- end }}

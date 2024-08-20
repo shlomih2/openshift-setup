@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.agent (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.agent.nameOverride "image" .Values.agent.image )) | nindent 4 }}
+spec:
+  {{- if not .Values.agent.autoscaling.enabled }}
+  replicas: {{ .Values.agent.replicaCount }}
+  {{- end }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- (include "scaleops.selectorLabels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.agent.nameOverride "image" .Values.agent.image )) | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- (include "scaleops.additionalAnnotations" (dict "Values" .Values "component" .Values.agent)) | nindent 8 }}
+      labels:
+        scaleops.sh: "true"
+        {{- (include "scaleops.additionalLabels" (dict "Values" .Values "component" .Values.agent)) | nindent 8 }}
+        {{- (include "scaleops.selectorLabels" (dict "Release" .Release "nameOverride" .Values.agent.nameOverride)) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Values.agent.serviceAccount.name }}
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecretName }}
+      {{- (include "scaleops.securityContext" (dict "securityContext" .Values.agent.securityContext "Values" .Values)) | nindent 6 }}
+      volumes:
+        - name: scaleops-token
+          secret:
+            secretName: {{ .Values.global.imagePullSecretName }}
+            optional: true
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+        {{ include "scaleops.secretVolumes" . | nindent 8 }}
+      containers:
+        - name: agent
+          volumeMounts:
+            - name: scaleops-token
+              mountPath: /var/run/secrets/scaleops.sh/token/
+              readOnly: true
+            {{- include "scaleops.secretVolumeMounts" . | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.agent.pprofPort }}
+              name: pprof
+          {{- (include "scaleops.containerSecurityContext" (dict "containerSecurityContext" .Values.agent.containerSecurityContext "Values" .Values)) | nindent 10 }}
+          image: "{{.Values.agent.image.repository | default .Values.global.image.repository }}:{{ .Values.agent.image.tag | default .Values.global.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.agent.image.pullPolicy | default .Values.global.image.pullPolicy }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9999
+              scheme: HTTP
+            failureThreshold: {{ .Values.agent.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.agent.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.agent.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9999
+              scheme: HTTP
+            periodSeconds: {{ .Values.agent.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.agent.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.agent.readinessProbe.timeoutSeconds }}
+          command:
+            - /server
+            - agent
+            - --health-probe-bind-address=:9999
+            - --prometheus-operator-integration={{ .Values.prometheusOperatorIntegration }}
+            - --prometheus-enabled={{ .Values.prometheusEnabled }}
+            - --prometheus_address
+            - http://{{ .Values.prometheusAddress }}
+            - --pprof-port={{- .Values.agent.pprofPort }}
+            - --https_proxy={{- .Values.httpsProxy }}
+            - -v={{.Values.agent.verbose | default .Values.global.verbose}}
+            - --zap-log-level={{ .Values.agent.logLevel | default .Values.global.logLevel  }}
+            - --image-pull-secret-name={{ .Values.global.imagePullSecretName }}
+            - --cluster-name={{ .Values.clusterName }}
+            - --scaleops-region={{ .Values.scaleopsRegion }}
+            {{- include "scaleops.syncLevel" . | nindent 12 }}
+            {{- range .Values.agent.extraArgs }}
+            - {{ . }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.agent.resources | nindent 12 }}
+          env:
+            - name: SCALEOPS_NETWORK_COST_ENABLED
+              value: "{{ .Values.global.enableNetworkMonitoring }}"
+            - name: SCALEOPS_GPU_COST_INCLUSION
+              value: {{ .Values.global.gpuCostInclusion }}
+            - name: SCALEOPS_UPDATER_ENABLED
+              value: "{{ .Values.updater.enabled }}"
+            - name: SCALEOPS_ADMISSIONS_ENABLED
+              value: "{{ .Values.admissions.enabled }}"
+            - name: OWNER_TAG
+              valueFrom:
+                configMapKeyRef:
+                  name: scaleops-alert-settings
+                  key: label
+                  optional: true
+          {{- include "scaleops.secretEnvVars" . | nindent 12 }}
+      {{- with .Values.agent.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+        podAntiAffinity:
+          {{- toYaml .Values.agent.podAntiAffinity | nindent 12 }}
+        podAffinity:
+          {{- toYaml .Values.agent.podAffinity | nindent 12 }}
+        nodeAffinity:
+          {{- .Values.agent.nodeAffinity | default .Values.global.nodeAffinity | toYaml | nindent 12 }}
+      {{- with .Values.agent.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

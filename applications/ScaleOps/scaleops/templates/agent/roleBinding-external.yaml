@@ -1,0 +1,21 @@
+{{- $namespaces := list "kube-system" "karpenter" "cluster-autoscaler" }}
+
+{{- range $namespace := $namespaces }}
+{{- $ns := (lookup "v1" "Namespace" "" $namespace) }}
+{{- if ($ns) }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ $.Values.agent.rbac.rolesExternal.name }}
+  namespace: {{ $namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ $.Values.agent.rbac.rolesExternal.name }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "scaleops.name" $.Values.agent }}
+    namespace: {{ $.Release.Namespace }}
+{{- end}}
+---
+{{- end}}

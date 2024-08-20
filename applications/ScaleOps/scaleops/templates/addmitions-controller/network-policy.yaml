@@ -1,0 +1,19 @@
+{{- if .Values.global.networkPolicy.enabled }}
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.admissions (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.admissions.nameOverride "image" .Values.admissions.image )) | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- (include "scaleops.selectorLabels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.admissions.nameOverride "image" .Values.admissions.image )) | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+{{- include "scaleops.ingress" . }}
+  egress:
+{{- include "scaleops.egress" . }}
+{{- end }}

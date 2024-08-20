@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "repo-updater.fullname" . }}
+  labels:
+    {{- include "repo-updater.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.http }}
+      targetPort: http
+      protocol: TCP
+      name: http
+    - port: {{ .Values.service.grpc }}
+      protocol: TCP
+      targetPort: grpc
+      name: grpc
+  selector:
+    {{- include "repo-updater.selectorLabels" . | nindent 4 }}

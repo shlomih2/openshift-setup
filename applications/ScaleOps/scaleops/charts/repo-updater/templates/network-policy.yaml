@@ -1,0 +1,39 @@
+{{- if .Values.global.networkPolicy.enabled }}
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: {{ include "repo-updater.fullname" . }}
+  labels:
+    {{- include "repo-updater.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "repo-updater.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: scaleops-agent
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: scaleops-dashboards
+      ports:
+        - port: 8081
+          protocol: TCP
+  egress:
+{{- include "scaleops.egress-apiserver" . }}
+{{- include "scaleops.egress-dns" . }}
+{{- if .Values.global.networkPolicy.repoUpdaterInternetEnabled }}
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - port: 443
+          protocol: TCP
+        - port: 80
+          protocol: TCP
+{{- end }}
+{{- end }}

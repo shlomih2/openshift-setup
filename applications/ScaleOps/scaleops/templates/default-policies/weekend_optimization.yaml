@@ -1,0 +1,108 @@
+apiVersion: analysis.scaleops.sh/v1alpha1
+kind: Policy
+metadata:
+  name: weekend-optimization
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    scaleops.sh/builtin-policy: "true"
+spec:
+  type: Optimize
+  completionStrategy:
+    completionStrategyType: Periodical
+    periodSeconds: {{ .Values.policyDefaults.completionPeriodSeconds }}
+  policyOptimize:
+    rightSizePolicy:
+      window: {{ .Values.policyDefaults.weekendOptimized.cpu.window }}
+      windowByResource:
+        cpu: {{ .Values.policyDefaults.weekendOptimized.cpu.window }}
+        memory: {{ .Values.policyDefaults.weekendOptimized.memory.window }}
+      requestsConfigs:
+        cpu:
+          percentilePercentage: {{ .Values.policyDefaults.weekendOptimized.cpu.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.weekendOptimized.cpu.requestHeadroom }}
+          {{- if .Values.policyDefaults.weekendOptimized.cpu.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.weekendOptimized.cpu.minAllowed | quote }}
+          {{- end }}
+          {{- if .Values.policyDefaults.weekendOptimized.cpu.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.weekendOptimized.cpu.maxAllowed | quote }}
+          {{- end }}
+        memory:
+          percentilePercentage: {{ .Values.policyDefaults.weekendOptimized.memory.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.weekendOptimized.memory.requestHeadroom }}
+          {{- if .Values.policyDefaults.weekendOptimized.memory.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.weekendOptimized.memory.minAllowed | quote }}
+          {{- end }}
+          {{- if .Values.policyDefaults.weekendOptimized.memory.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.weekendOptimized.memory.maxAllowed | quote }}
+          {{- end }}
+      limitConfigs:
+        cpu:
+          keepLimit: {{ .Values.policyDefaults.weekendOptimized.cpu.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.weekendOptimized.cpu.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.weekendOptimized.cpu.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.weekendOptimized.cpu.limitHeadroom }}
+        memory:
+          keepLimit: {{ .Values.policyDefaults.weekendOptimized.memory.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.weekendOptimized.memory.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.weekendOptimized.memory.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.weekendOptimized.memory.limitHeadroom }}
+      hpaUtilTriggerRightsizeProtection: {{ .Values.policyDefaults.weekendOptimized.hpaUtilTriggerRightsizeProtection }}
+      nodeCappingPolicy:
+        nodeCappingAuto: {{ .Values.policyDefaults.weekendOptimized.nodeCappingAuto }}
+    {{- with .Values.policyDefaults.fastReaction }}
+    fastReaction:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+  updatePolicy:
+    updateByTypeMode:
+      deployment: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.updateByTypeMode.deployment }}
+      statefulSet: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.updateByTypeMode.statefulSet }}
+      daemonSet: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.updateByTypeMode.daemonSet }}
+      job: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.updateByTypeMode.job }}
+      family: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.updateByTypeMode.family }}
+      deploymentConfig: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.updateByTypeMode.deploymentConfig }}
+    requiredWindowCoveragePercentage: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.requiredWindowCoveragePercentage }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    advancedBinPackCasLimitations: false
+{{- else }}
+    advancedBinPackCasLimitations: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.advancedBinPackCasLimitations }}
+{{- end }}
+    bootTime: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.bootTime }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictablePods: false
+{{- else }}
+    binPackUnEvictablePods: {{ .Values.policyDefaults.binPackUnEvictablePods }}
+{{- end }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictableNotHealthyPods: false
+{{- end }}
+    maxUnavailablePodsPercentage: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.maxUnavailablePodsPercentage }}
+    minReplicas: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.minReplicas }}
+    stabilizationWindowSeconds:
+      scaleDown: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.stabilizationWindowSeconds.scaleDown }}
+      scaleUp: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.stabilizationWindowSeconds.scaleUp }}
+    minScaleDownUnits:
+      cpu: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.minScaleDownUnits.cpu }}
+      memory: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.minScaleDownUnits.memory }}
+    minScaleUpUnits:
+      cpu: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.minScaleUpUnits.cpu }}
+      memory: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.minScaleUpUnits.memory }}
+    minScaleDownChangeDiff:
+      cpu: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.minScaleDownRatio.cpu }}
+      memory: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.minScaleDownRatio.memory }}
+    minScaleUpChangeDiff:
+      cpu: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.minScaleUpRatio.cpu }}
+      memory: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.minScaleUpRatio.memory }}
+    evictionSchedule:
+      scaleDown: '* 00-23 * * 6,0'
+      scaleUp: '* 00-23 * * 6,0'
+    allowRollingUpdate: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.allowRollingUpdate }}
+    skipRolloutUponAutomation: {{ .Values.policyDefaults.weekendOptimized.updatePolicy.skipRolloutUponAutomation }}
+  autoHealing:
+    minSteps:
+      cpu: {{ .Values.policyDefaults.weekendOptimized.autoHealing.minSteps.cpu }}
+      memory: {{ .Values.policyDefaults.weekendOptimized.autoHealing.minSteps.memory }}
+    multiplier:
+      cpu: {{ .Values.policyDefaults.weekendOptimized.autoHealing.multiplier.cpu }}
+      memory: {{ .Values.policyDefaults.weekendOptimized.autoHealing.multiplier.memory }}

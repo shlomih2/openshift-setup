@@ -1,0 +1,7 @@
+apiVersion: v2
+appVersion: v0.0.18
+description: Scaleops Repo Updater, ensures sync between the scaleops recommendation
+  and the source code
+name: repo-updater
+type: application
+version: 0.0.13

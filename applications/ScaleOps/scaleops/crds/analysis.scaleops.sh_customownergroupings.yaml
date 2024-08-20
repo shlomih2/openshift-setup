@@ -1,0 +1,258 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: customownergroupings.analysis.scaleops.sh
+spec:
+  group: analysis.scaleops.sh
+  names:
+    kind: CustomOwnerGrouping
+    listKind: CustomOwnerGroupingList
+    plural: customownergroupings
+    shortNames:
+    - cog
+    singular: customownergrouping
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: CustomOwnerGroupingSpec configures the pods selecting and
+              grouping settings for the CustomOwnerGrouping.
+            properties:
+              displayOptions:
+                description: DisplayOptions is used to configure the display name
+                  of the group.
+                properties:
+                  fields:
+                    description: |-
+                      CustomOwnerGroupingGroupByField is a list of fields that will be used as display name for the group.
+                      If not specified, the group display name will be generated based on all fields.
+                      if specified but not found in the group, it will be ignored.
+                    items:
+                      enum:
+                      - labels
+                      - annotations
+                      - ownerAPIVersion
+                      - ownerKind
+                      - ownerName
+                      type: string
+                    type: array
+                  hideGeneratedSuffix:
+                    default: false
+                    type: boolean
+                type: object
+              groupBy:
+                description: DEPRECATED
+                properties:
+                  annotations:
+                    description: |-
+                      Annotations is a list of annotation items treated as regex (RE2 syntax) for grouping pods.
+                      The treated annotation is amended with "^" to ensure the regex matches the beginning of the annotation.
+                      Pods with annotation matching these regexes will be categorized based on the rest of the string for all annotations match.
+                      For example, for annotation "foo: bar" and the string "foo: b", th unique value is "ar"
+                    items:
+                      type: string
+                    minItems: 1
+                    type: array
+                  excludeAnnotations:
+                    items:
+                      type: string
+                    minItems: 1
+                    type: array
+                  excludeLabels:
+                    items:
+                      type: string
+                    minItems: 1
+                    type: array
+                  images:
+                    description: |-
+                      Images ia list of images to be treated as regex (RE2 syntax) for grouping pods.
+                      Will group pods based on the unique value of the images that fit the regex in the pod.
+                    items:
+                      type: string
+                    minItems: 1
+                    type: array
+                  labels:
+                    description: |-
+                      Labels is a list of label items treated as regex (RE2 syntax) for grouping pods.
+                      The treated label is amended with "^" to ensure the regex matches the beginning of the label.
+                      Pods with labels matching these regexes will be categorized based on the rest of the string (key: value).
+                      The Labels operate as an AND condition for all provided keys,
+                      Values for this field can be separated by comma (",") to create a priority order for a specific label.
+                      For example, for label "foo: bar" and the string "foo: b", the unique value is "ar".
+                      For the labels "foo: bar" and "abc: def", and the string "foo, abc", the unique value is "bar"
+                    items:
+                      type: string
+                    minItems: 1
+                    type: array
+                  positiveRegexMatch:
+                    default: false
+                    description: |-
+                      PositiveRegexMatch indicates if the regex match should group by the regex matched part or split by the
+                      beginning of the string if it matches.
+                    type: boolean
+                  topOwnerController:
+                    description: |-
+                      TopOwnerController is used to find matching pods.
+                      Pods that are controlled by this owner will be categorized based on its name unique value.
+                      If name is specified, it should contain regex indicating the desired unique value selection.
+                      For example, for the selection regex `^(.*)-.+$` and the owner name "abc-123-ccc", the unique value is "abc-123"
+                    properties:
+                      apiVersion:
+                        type: string
+                      kind:
+                        type: string
+                      name:
+                        type: string
+                    required:
+                    - kind
+                    type: object
+                type: object
+              groupBys:
+                description: The GroupBys operates as an AND condition for all provided
+                  fields in each groupBy and OR between the groupBys array elements.
+                items:
+                  description: CustomOwnerGroupingGroupBy defines the keys that will
+                    be used to group pods into families.
+                  properties:
+                    annotations:
+                      description: |-
+                        Annotations is a list of annotation items treated as regex (RE2 syntax) for grouping pods.
+                        The treated annotation is amended with "^" to ensure the regex matches the beginning of the annotation.
+                        Pods with annotation matching these regexes will be categorized based on the rest of the string for all annotations match.
+                        For example, for annotation "foo: bar" and the string "foo: b", th unique value is "ar"
+                      items:
+                        type: string
+                      minItems: 1
+                      type: array
+                    excludeAnnotations:
+                      items:
+                        type: string
+                      minItems: 1
+                      type: array
+                    excludeLabels:
+                      items:
+                        type: string
+                      minItems: 1
+                      type: array
+                    images:
+                      description: |-
+                        Images ia list of images to be treated as regex (RE2 syntax) for grouping pods.
+                        Will group pods based on the unique value of the images that fit the regex in the pod.
+                      items:
+                        type: string
+                      minItems: 1
+                      type: array
+                    labels:
+                      description: |-
+                        Labels is a list of label items treated as regex (RE2 syntax) for grouping pods.
+                        The treated label is amended with "^" to ensure the regex matches the beginning of the label.
+                        Pods with labels matching these regexes will be categorized based on the rest of the string (key: value).
+                        The Labels operate as an AND condition for all provided keys,
+                        Values for this field can be separated by comma (",") to create a priority order for a specific label.
+                        For example, for label "foo: bar" and the string "foo: b", the unique value is "ar".
+                        For the labels "foo: bar" and "abc: def", and the string "foo, abc", the unique value is "bar"
+                      items:
+                        type: string
+                      minItems: 1
+                      type: array
+                    positiveRegexMatch:
+                      default: false
+                      description: |-
+                        PositiveRegexMatch indicates if the regex match should group by the regex matched part or split by the
+                        beginning of the string if it matches.
+                      type: boolean
+                    topOwnerController:
+                      description: |-
+                        TopOwnerController is used to find matching pods.
+                        Pods that are controlled by this owner will be categorized based on its name unique value.
+                        If name is specified, it should contain regex indicating the desired unique value selection.
+                        For example, for the selection regex `^(.*)-.+$` and the owner name "abc-123-ccc", the unique value is "abc-123"
+                      properties:
+                        apiVersion:
+                          type: string
+                        kind:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                      - kind
+                      type: object
+                  type: object
+                type: array
+              recommendationRetentionPeriodMinutes:
+                description: |-
+                  RecommendationRetentionPeriodMinutes is the number of seconds allowed for the matching recommendation objects to gracefully terminate before it will be removed from the system.
+                  Only set when recommendation deletionTimestamp is also set.
+                format: int32
+                type: integer
+            required:
+            - groupBys
+            type: object
+          status:
+            description: CustomOwnerGroupingStatus represents the current state of
+              a recommendation.
+            properties:
+              lastCheckpoint:
+                description: LastCheckpoint indicates last time we updated the status.
+                format: date-time
+                type: string
+              namespacedGroups:
+                additionalProperties:
+                  description: NamespacedGroupStatus bundles multiple GroupStatus
+                  items:
+                    properties:
+                      name:
+                        description: Name is the name of the group.
+                        type: string
+                      podCount:
+                        description: PodCount is the count of pods identified as part
+                          of the group.
+                        type: integer
+                      pods:
+                        description: Pods is a list of pod names identified as part
+                          of the group.
+                        items:
+                          type: string
+                        type: array
+                      uniqueIdentifiers:
+                        additionalProperties:
+                          type: string
+                        description: Unique pairs identifying the group.
+                        type: object
+                    type: object
+                  type: array
+                description: NamespacedGroups is a map of families identified by this
+                  CustomOwnerGrouping per namespace.
+                type: object
+            type: object
+        required:
+        - metadata
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,74 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ .Values.agent.rbac.rolesInternal.name }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - update
+      - create
+  - apiGroups:
+      - ""
+    resources:
+      - pods/exec
+    verbs:
+      - get
+      - create
+  - apiGroups:
+      - ''
+    resources:
+      - pods/log
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - limitranges
+      - resourcequotas
+      - endpoints
+      - endpointslices
+      - services
+      - persistentvolumes
+      - persistentvolumeclaims
+    verbs:
+      - update
+      - patch
+      - create
+      - delete
+  - apiGroups:
+      - extensions
+      - networking.k8s.io
+    resources:
+      - ingresses
+      - ingressclasses
+    verbs:
+      - update
+      - patch
+      - create
+  - apiGroups:
+      - ''
+    resources:
+      - namespaces
+    verbs:
+      - update
+      - patch
+  {{- if .Values.prometheusOperatorIntegration }}
+  - apiGroups:
+      - "monitoring.coreos.com"
+    resources:
+      - prometheusrules
+    verbs:
+      - create
+      - update
+  {{- end }}

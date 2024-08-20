@@ -1,0 +1,267 @@
+---
+{{- if .Values.updater.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.updater.rbac.clusterRoleReadOnly.name }}
+rules:
+  - apiGroups:
+      - analysis.scaleops.sh
+    resources:
+      - '*'
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - create
+      - delete
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ''
+    resources:
+      - replicationcontrollers
+      - replicationcontrollers/scale
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+      - extensions
+    resources:
+      - deployments
+      - replicasets
+      - statefulsets
+      - daemonsets
+      - deployments/scale
+      - replicasets/scale
+      - statefulsets/scale
+      - daemonsets/scale
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - rollouts
+      - rollouts/scale
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - '*'
+    resources:
+      - provisioners
+      - nodepools
+      - awsnodetemplates
+      - machines
+      - nodeclaims
+      - ec2nodeclasses
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - delete
+{{- if .Capabilities.APIVersions.Has "apps.openshift.io/v1/DeploymentConfig"}}
+  - apiGroups:
+      - apps.openshift.io
+    resources:
+      - deploymentconfigs
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - quota.openshift.io
+    resources:
+      - clusterresourcequotas
+      - appliedclusterresourcequotas
+    verbs:
+      - get
+      - list
+      - watch
+{{- end }}
+  - apiGroups:
+      - batch
+    resources:
+      - cronjobs
+      - jobs
+      - cronjobs/scale
+      - jobs/scale
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - autoscaling.k8s.io
+    resources:
+      - verticalpodautoscalers
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - autoscaling
+    resources:
+      - horizontalpodautoscalers
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+  - apiGroups:
+      - 'keda.sh'
+    resources:
+      - scaledobjects
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ''
+    resources:
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - ''
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - 'admissionregistration.k8s.io'
+    resources:
+      - mutatingwebhookconfigurations
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ''
+    resources:
+      - persistentvolumes
+      - persistentvolumeclaims
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - create
+  - apiGroups:
+      - policy
+    resources:
+      - poddisruptionbudgets
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - resourcequotas
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ''
+    resources:
+      - namespaces
+    verbs:
+      - get
+      - list
+      - watch
+{{- end}}
+---
+{{- if .Values.updater.enabled }}
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.updater.rbac.clusterRolePrivileged.name }}
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - pods/eviction
+    verbs:
+      - create
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+    verbs:
+      - delete
+      - create
+      - update
+      - patch
+  - apiGroups:
+      - ''
+    resources:
+      - replicationcontrollers
+      - replicationcontrollers/scale
+    verbs:
+      - update
+      - patch
+      - delete
+  - apiGroups:
+      - apps
+    resources:
+      - deployments
+      - replicasets
+      - deployments/scale
+      - replicasets/scale
+      - statefulsets/scale
+      - daemonsets/scale
+      - replicasets/finalizers
+    verbs:
+      - update
+      - patch
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - rollouts
+      - rollouts/scale
+    verbs:
+      - patch
+      - update
+{{- if .Capabilities.APIVersions.Has "apps.openshift.io/v1/DeploymentConfig"}}
+  - apiGroups:
+      - apps.openshift.io
+    resources:
+      - deploymentconfigs
+    verbs:
+      - update
+      - patch
+{{- end }}
+{{- end}}

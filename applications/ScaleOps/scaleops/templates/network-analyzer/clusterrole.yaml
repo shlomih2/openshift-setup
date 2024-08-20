@@ -1,0 +1,46 @@
+{{- if and .Values.global.enableNetworkMonitoring .Values.networkMonitor.clusterRole.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "scaleops.name" .Values.networkMonitor }}
+rules:
+  - apiGroups:
+      - ''
+    resources:
+      - pods
+      - nodes
+      - replicationcontrollers
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - batch
+    resources:
+      - cronjobs
+      - jobs
+      - cronjobs/scale
+      - jobs/scale
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - apps
+      - extensions
+    resources:
+      - deployments
+      - replicasets
+      - replicationcontrollers
+      - statefulsets
+      - daemonsets
+      - deployments/scale
+      - replicasets/scale
+      - replicationcontrollers/scale
+      - statefulsets/scale
+      - daemonsets/scale
+    verbs:
+      - get
+      - list
+      - watch
+{{- end }}

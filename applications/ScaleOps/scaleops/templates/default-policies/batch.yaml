@@ -1,0 +1,108 @@
+apiVersion: analysis.scaleops.sh/v1alpha1
+kind: Policy
+metadata:
+  name: batch
+  annotations:
+    helm.sh/resource-policy: keep
+  labels:
+    scaleops.sh/builtin-policy: "true"
+spec:
+  type: Optimize
+  completionStrategy:
+    completionStrategyType: Periodical
+    periodSeconds: {{ .Values.policyDefaults.completionPeriodSeconds }}
+  policyOptimize:
+    rightSizePolicy:
+      window: 168h
+      windowByResource:
+        cpu: {{ .Values.policyDefaults.batch.cpu.window }}
+        memory: {{ .Values.policyDefaults.batch.memory.window }}
+      requestsConfigs:
+        cpu:
+          percentilePercentage: {{ .Values.policyDefaults.batch.cpu.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.batch.cpu.requestHeadroom }}
+          {{- if .Values.policyDefaults.batch.cpu.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.batch.cpu.minAllowed | quote }}
+          {{- end }}
+          {{- if .Values.policyDefaults.batch.cpu.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.batch.cpu.maxAllowed | quote }}
+          {{- end }}
+        memory:
+          percentilePercentage: {{ .Values.policyDefaults.batch.memory.requestPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.batch.memory.requestHeadroom }}
+          {{- if .Values.policyDefaults.batch.memory.minAllowed }}
+          minAllowed: {{ .Values.policyDefaults.batch.memory.minAllowed | quote }}
+          {{ end }}
+          {{- if .Values.policyDefaults.batch.memory.maxAllowed }}
+          maxAllowed: {{ .Values.policyDefaults.batch.memory.maxAllowed | quote }}
+          {{ end }}
+      limitConfigs:
+        cpu:
+          keepLimit: {{ .Values.policyDefaults.batch.cpu.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.batch.cpu.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.batch.cpu.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.batch.cpu.limitHeadroom }}
+        memory:
+          keepLimit: {{ .Values.policyDefaults.batch.memory.keepLimit }}
+          noLimit: {{ .Values.policyDefaults.batch.memory.noLimit }}
+          percentilePercentage: {{ .Values.policyDefaults.batch.memory.limitPercentile }}
+          headroomPercentage: {{ .Values.policyDefaults.batch.memory.limitHeadroom }}
+      hpaUtilTriggerRightsizeProtection: {{ .Values.policyDefaults.batch.hpaUtilTriggerRightsizeProtection }}
+      nodeCappingPolicy:
+        nodeCappingAuto: {{ .Values.policyDefaults.batch.nodeCappingAuto }}
+    {{- with .Values.policyDefaults.fastReaction }}
+    fastReaction:
+      {{- toYaml . | nindent 8 }}
+    {{- end }}
+  updatePolicy:
+    updateByTypeMode:
+      deployment: {{ .Values.policyDefaults.batch.updatePolicy.updateByTypeMode.deployment }}
+      statefulSet: {{ .Values.policyDefaults.batch.updatePolicy.updateByTypeMode.statefulSet }}
+      daemonSet: {{ .Values.policyDefaults.batch.updatePolicy.updateByTypeMode.daemonSet }}
+      job: {{ .Values.policyDefaults.batch.updatePolicy.updateByTypeMode.job }}
+      family: {{ .Values.policyDefaults.batch.updatePolicy.updateByTypeMode.family }}
+      deploymentConfig: {{ .Values.policyDefaults.batch.updatePolicy.updateByTypeMode.deploymentConfig }}
+    requiredWindowCoveragePercentage: {{ .Values.policyDefaults.batch.updatePolicy.requiredWindowCoveragePercentage }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    advancedBinPackCasLimitations: false
+{{- else }}
+    advancedBinPackCasLimitations: {{ .Values.policyDefaults.batch.updatePolicy.advancedBinPackCasLimitations }}
+{{- end }}
+    bootTime: {{ .Values.policyDefaults.batch.updatePolicy.bootTime }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictablePods: false
+{{- else }}
+    binPackUnEvictablePods: {{ .Values.policyDefaults.binPackUnEvictablePods }}
+{{- end }}
+{{- if eq (include "isOpenShift" .) "true" }}
+    binPackUnEvictableNotHealthyPods: false
+{{- end }}
+    maxUnavailablePodsPercentage: {{ .Values.policyDefaults.batch.updatePolicy.maxUnavailablePodsPercentage }}
+    minReplicas: 1
+    stabilizationWindowSeconds:
+      scaleDown: {{ .Values.policyDefaults.batch.updatePolicy.stabilizationWindowSeconds.scaleDown }}
+      scaleUp: {{ .Values.policyDefaults.batch.updatePolicy.stabilizationWindowSeconds.scaleUp }}
+    minScaleDownUnits:
+      cpu: {{ .Values.policyDefaults.batch.updatePolicy.minScaleDownUnits.cpu }}
+      memory: {{ .Values.policyDefaults.batch.updatePolicy.minScaleDownUnits.memory }}
+    minScaleUpUnits:
+      cpu: {{ .Values.policyDefaults.batch.updatePolicy.minScaleUpUnits.cpu }}
+      memory: {{ .Values.policyDefaults.batch.updatePolicy.minScaleUpUnits.memory }}
+    minScaleDownChangeDiff:
+      cpu: {{ .Values.policyDefaults.batch.updatePolicy.minScaleDownRatio.cpu }}
+      memory: {{ .Values.policyDefaults.batch.updatePolicy.minScaleDownRatio.memory }}
+    minScaleUpChangeDiff:
+      cpu: {{ .Values.policyDefaults.batch.updatePolicy.minScaleUpRatio.cpu }}
+      memory: {{ .Values.policyDefaults.batch.updatePolicy.minScaleUpRatio.memory }}
+    evictionSchedule:
+      scaleDown: '* * * * *'
+      scaleUp: '* * * * *'
+    allowRollingUpdate: {{ .Values.policyDefaults.batch.updatePolicy.allowRollingUpdate }}
+    skipRolloutUponAutomation: {{ .Values.policyDefaults.batch.updatePolicy.skipRolloutUponAutomation }}
+  autoHealing:
+    minSteps:
+      cpu: {{ .Values.policyDefaults.batch.autoHealing.minSteps.cpu }}
+      memory: {{ .Values.policyDefaults.batch.autoHealing.minSteps.memory }}
+    multiplier:
+      cpu: {{ .Values.policyDefaults.batch.autoHealing.multiplier.cpu }}
+      memory: {{ .Values.policyDefaults.batch.autoHealing.multiplier.memory }}

@@ -1,0 +1,8 @@
+{{- if not .Values.global.disablePriorityClass -}}
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: scaleops-overprovisioning
+value: -9
+globalDefault: false
+{{- end }}

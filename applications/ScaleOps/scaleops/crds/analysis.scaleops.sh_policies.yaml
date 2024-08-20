@@ -1,0 +1,707 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.15.0
+  name: policies.analysis.scaleops.sh
+spec:
+  group: analysis.scaleops.sh
+  names:
+    kind: Policy
+    listKind: PolicyList
+    plural: policies
+    shortNames:
+    - policy
+    singular: policy
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Policy indicates the way of how the recommendation is constructed
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            properties:
+              autoHealing:
+                default:
+                  minSteps:
+                    cpu: 0.15
+                    memory: 0.1
+                  multiplier:
+                    cpu: 1.2
+                    memory: 1.2
+                description: AutoHealing defines the auto healing settings for the
+                  resource that affecting the recommendation, units are cores and
+                  GBs
+                properties:
+                  enabled:
+                    description: Deprecated
+                    type: boolean
+                  enabledV2:
+                    type: boolean
+                  minSteps:
+                    additionalProperties:
+                      type: number
+                    description: MinSteps defines the minimum steps for auto healing,
+                      ether cores or GBs
+                    type: object
+                  multiplier:
+                    additionalProperties:
+                      type: number
+                    type: object
+                type: object
+              completionStrategy:
+                default:
+                  periodSeconds: 30
+                description: |-
+                  CompletionStrategy indicate how to complete a recommendation.
+                  the default CompletionStrategy is Periodical with 30 seconds period size.
+                properties:
+                  completionStrategyType:
+                    default: Periodical
+                    description: CompletionStrategy indicate the strategy to request
+                      an Analytics or Recommendation, value can be "Once" and "Periodical"
+                    enum:
+                    - Once
+                    - Periodical
+                    type: string
+                  periodSeconds:
+                    default: 60
+                    description: PeriodSeconds is the duration in seconds for an Analytics
+                      or Recommendation.
+                    format: int64
+                    type: integer
+                type: object
+              hpa:
+                default:
+                  manageHPA: true
+                properties:
+                  manageHPA:
+                    default: true
+                    description: ManageHPA indicates if we should manage the HPA of
+                      the resource that attached to this recommendation
+                    type: boolean
+                type: object
+              policyOptimize:
+                description: PolicyOptimize indicates on how the calculation of right
+                  size should be done
+                properties:
+                  fastReaction:
+                    default:
+                      enabled:
+                        cpu: true
+                        memory: true
+                      headroomPercentages:
+                        cpu: 5
+                        memory: 5
+                      historyMinutes:
+                        cpu: 20
+                        memory: 20
+                      minScaleDownChangeDiff:
+                        cpu: 0.85
+                        memory: 0.9
+                      minScaleDownUnits:
+                        cpu: 3000m
+                        memory: 4Gi
+                      minScaleUpChangeDiff:
+                        cpu: 0.5
+                        memory: 0.5
+                      minScaleUpUnits:
+                        cpu: 800m
+                        memory: 1Gi
+                      percentilePercentages:
+                        cpu: 99
+                        memory: 99
+                      reactionMinutes:
+                        cpu: 12
+                        memory: 12
+                      windows:
+                        cpu: 9h
+                        memory: 9h
+                    properties:
+                      activeDurationMinutes:
+                        additionalProperties:
+                          format: int32
+                          type: integer
+                        type: object
+                      enabled:
+                        additionalProperties:
+                          type: boolean
+                        type: object
+                      headroomPercentages:
+                        additionalProperties:
+                          format: int32
+                          type: integer
+                        type: object
+                      historyMinutes:
+                        additionalProperties:
+                          format: int32
+                          type: integer
+                        type: object
+                      minScaleDownChangeDiff:
+                        additionalProperties:
+                          type: number
+                        type: object
+                      minScaleDownUnits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        type: object
+                      minScaleUpChangeDiff:
+                        additionalProperties:
+                          type: number
+                        type: object
+                      minScaleUpUnits:
+                        additionalProperties:
+                          anyOf:
+                          - type: integer
+                          - type: string
+                          pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                          x-kubernetes-int-or-string: true
+                        type: object
+                      percentilePercentages:
+                        additionalProperties:
+                          format: int32
+                          type: integer
+                        type: object
+                      reactionMinutes:
+                        additionalProperties:
+                          format: int32
+                          type: integer
+                        type: object
+                      windows:
+                        additionalProperties:
+                          type: string
+                        type: object
+                    type: object
+                  priority:
+                    default:
+                      name: ""
+                    properties:
+                      name:
+                        default: ""
+                        description: Name
+                        type: string
+                    type: object
+                  rightSizePolicy:
+                    default:
+                      limitConfigs:
+                        cpu:
+                          equalsToRequest: false
+                          headroomPercentage: 150
+                          keepLimit: false
+                          noLimit: true
+                          percentilePercentage: 99
+                          setLimit: ""
+                        memory:
+                          equalsToRequest: false
+                          headroomPercentage: 20
+                          keepLimit: false
+                          noLimit: false
+                          percentilePercentage: 99
+                          setLimit: ""
+                      requestsConfigs:
+                        cpu:
+                          headroomPercentage: 20
+                          percentilePercentage: 99
+                        memory:
+                          headroomPercentage: 20
+                          percentilePercentage: 99
+                      window: 168h
+                      windowByResource:
+                        cpu: 168h
+                        memory: 168h
+                    description: RightSizePolicy indicates on how the calculation
+                      of right size should be done
+                    properties:
+                      costReductionRecommendationOnly:
+                        additionalProperties:
+                          type: boolean
+                        type: object
+                      cpuInteger:
+                        description: CpuInteger if true will round up to the nearest
+                          integer for cpu request (Capping can still set it to non-integer).
+                        type: boolean
+                      hpaCappingFactorByResource:
+                        additionalProperties:
+                          type: number
+                        type: object
+                      hpaUtilTriggerRightsizeProtection:
+                        description: HPAUtilTriggerRightsizeProtection keeps cap the
+                          rightsize recommendation considering hpa resource utilization
+                          triggers
+                        type: boolean
+                      limitConfigs:
+                        additionalProperties:
+                          properties:
+                            equalsToRequest:
+                              type: boolean
+                            headroomPercentage:
+                              format: int32
+                              type: integer
+                            keepLimit:
+                              type: boolean
+                            name:
+                              default: 168h
+                              type: string
+                            noLimit:
+                              type: boolean
+                            percentilePercentage:
+                              format: int32
+                              type: integer
+                            setLimit:
+                              type: string
+                          type: object
+                        type: object
+                      nodeCappingPolicy:
+                        description: Cap workloads resource recommendations by nodes
+                        properties:
+                          nodeCappingAuto:
+                            default: true
+                            type: boolean
+                        type: object
+                      requestsConfigs:
+                        additionalProperties:
+                          properties:
+                            headroomPercentage:
+                              format: int32
+                              type: integer
+                            keepRequest:
+                              type: boolean
+                            maxAllowed:
+                              type: string
+                            minAllowed:
+                              type: string
+                            name:
+                              default: 168h
+                              type: string
+                            percentilePercentage:
+                              format: int32
+                              type: integer
+                          type: object
+                        type: object
+                      window:
+                        default: 168h
+                        description: Deprecated
+                        type: string
+                      windowByResource:
+                        additionalProperties:
+                          type: string
+                        type: object
+                    type: object
+                  scaleOutPolicy:
+                    default:
+                      enabled: false
+                    description: ScaleOutPolicy defines configurations and metric
+                      triggers for scale-out
+                    properties:
+                      enabled:
+                        default: false
+                        description: Enabled - ScaleOut policy can be configured and
+                          applied on workloads
+                        type: boolean
+                      hpaMetrics:
+                        description: HpaMetricTrigger are the Hpa Metric triggers
+                          - Not implemented, should be empty
+                        items:
+                          properties:
+                            metricConfName:
+                              default: ""
+                              description: MetricConfName is the presented name of
+                                the metric (UI, etc.)
+                              type: string
+                            value:
+                              description: Value
+                              format: int32
+                              type: integer
+                          type: object
+                        type: array
+                      maxReplicas:
+                        description: MaxReplicas indicates hard limit for maximum
+                          replicas
+                        format: int32
+                        type: integer
+                      metricGoals:
+                        description: MetricGoals Defines the goals that user define
+                          for this policy, eg. latency_p99=50
+                        items:
+                          properties:
+                            metricConfName:
+                              default: ""
+                              description: MetricConfName is the presented name of
+                                the metric (UI, etc.)
+                              type: string
+                            value:
+                              description: Value
+                              format: int32
+                              type: integer
+                          type: object
+                        type: array
+                      minReplicas:
+                        description: MinReplicas indicates hard limit for minimum
+                          replicas (min allowed)
+                        format: int32
+                        type: integer
+                      percentilePercentage:
+                        format: int32
+                        type: integer
+                      predictAheadOfTimeDuration:
+                        type: string
+                      predictionHeadroomPercentage:
+                        format: int32
+                        type: integer
+                      replicasPercentilePercentage:
+                        format: int32
+                        type: integer
+                      replicasWindow:
+                        type: string
+                      scaleOutBehavior:
+                        description: Behavior indicates scaling out behavior
+                        properties:
+                          scaelDownStabilizationWindowSeconds:
+                            default: 60
+                            description: ScaelDownStabilizationWindowSeconds indicates
+                              duration of condition before scaling down to avoid fluctuations
+                            format: int32
+                            type: integer
+                          scaelUpStabilizationWindowSeconds:
+                            default: 60
+                            description: ScaelUpStabilizationWindowSeconds indicates
+                              duration of condition before scaling up to avoid fluctuations
+                            format: int32
+                            type: integer
+                          scaleDownRate:
+                            description: ScaleDownRate indicates pods percentage per
+                              minute to scale down
+                            format: int32
+                            type: integer
+                          scaleUpRate:
+                            description: ScaleUpRate indicates pods percentage per
+                              minute to scale up
+                            format: int32
+                            type: integer
+                        type: object
+                      window:
+                        type: string
+                      workloadsToOptimize:
+                        type: string
+                    type: object
+                type: object
+              policySchedule:
+                description: PolicySchedule
+                properties:
+                  overrides:
+                    items:
+                      properties:
+                        period:
+                          properties:
+                            beginTime:
+                              default: "00:00"
+                              type: string
+                            days:
+                              default:
+                              - 0
+                              - 1
+                              - 2
+                              - 3
+                              - 4
+                              - 5
+                              - 6
+                              items:
+                                description: A Weekday specifies a day of the week
+                                  (Sunday = 0, ...).
+                                type: integer
+                              type: array
+                            endTime:
+                              default: "23:59"
+                              type: string
+                            scaleFromZeroMetricTriggers:
+                              description: ScaleFromZeroTriggers indicates a set of
+                                metrics that once they pass a threshold the workload
+                                should wake up
+                              items:
+                                properties:
+                                  metricConfName:
+                                    default: ""
+                                    description: MetricConfName is the presented name
+                                      of the metric (UI, etc.)
+                                    type: string
+                                  value:
+                                    description: Value
+                                    format: int32
+                                    type: integer
+                                type: object
+                              type: array
+                            scaleToZeroEnabled:
+                              type: boolean
+                          type: object
+                        policyOverriderName:
+                          default: ""
+                          type: string
+                      required:
+                      - period
+                      type: object
+                    type: array
+                type: object
+              type:
+                default: Optimize
+                enum:
+                - Optimize
+                - Schedule
+                type: string
+              updatePolicy:
+                default:
+                  advancedBinPackCasLimitations: true
+                  allowRollingUpdate: true
+                  binPackUnEvictablePods: true
+                  bootTime: false
+                  evictionSchedule:
+                    scaleUp: '* * * * *'
+                  maxUnavailablePodsPercentage: 10
+                  minReplicas: 0
+                  minScaleDownChangeDiff:
+                    cpu: 0.1
+                    memory: 0.1
+                  minScaleDownUnits:
+                    cpu: 30m
+                    memory: 12Mi
+                  minScaleUpChangeDiff:
+                    cpu: 0.1
+                    memory: 0.1
+                  minScaleUpUnits:
+                    cpu: 30m
+                    memory: 12Mi
+                  requiredWindowCoveragePercentage: 0
+                  stabilizationWindowSeconds:
+                    scaleDown: 1800
+                    scaleUp: 360
+                  updateByTypeMode:
+                    daemonSet: OnCreate
+                    deployment: Ongoing
+                    job: OnCreate
+                    statefulSet: OnCreate
+                description: UpdatePolicy defines the way in which we want to update
+                  the resource for which this recommendation was created
+                properties:
+                  advancedBinPackCasLimitations:
+                    description: AdvancedBinPackCasLimitations Binpack pods with local
+                      storage
+                    type: boolean
+                  allowRollingUpdate:
+                    description: AllowRollingUpdate enables creating a new shadow
+                      pod when evicting to ensure 100% uptime for single pod workloads
+                    type: boolean
+                  binPackUnEvictableNotHealthyPods:
+                    description: BinPackUnEvictableNotHealthyPods bin-packs not healthy
+                      pods with CAS/karpetner unsafe to evict annotations or pdbs
+                      limitations, as well as scaleops logic decisions for bin-pack
+                    type: boolean
+                  binPackUnEvictablePods:
+                    description: BinPackInevictablePods bin-packs pods with CAS/karpetner
+                      unsafe to evict annotations or pdbs limitations, as well as
+                      scaleops logic decisions for bin-pack
+                    type: boolean
+                  bootTime:
+                    type: boolean
+                  evictionSchedule:
+                    description: EvictionSchedule valid crons to rightsize the pods
+                    properties:
+                      scaleDown:
+                        default: '* * * * *'
+                        description: The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
+                        type: string
+                      scaleUp:
+                        default: '* * * * *'
+                        description: The schedule in Cron format, see https://en.wikipedia.org/wiki/Cron.
+                        type: string
+                      timeZone:
+                        description: |-
+                          The time zone for the given schedule, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones.
+                          If not specified, this will rely on the time zone of the kube-controller-manager process.
+                          ALPHA: This field is in alpha and must be enabled via the `CronJobTimeZone` feature gate.
+                        type: string
+                    type: object
+                  maxUnavailablePodsPercentage:
+                    description: MaxUnavailablePodsPercentage defines the maximum
+                      un-available pods that we want to allow during the change
+                    format: int32
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  minReplicas:
+                    description: MinReplicas minimum amount of replicas that we should
+                      make sure
+                    format: int32
+                    type: integer
+                  minScaleDownChangeDiff:
+                    additionalProperties:
+                      type: number
+                    description: |-
+                      MinScaleDownChangeDiff what should be the diff between current state and the desired state in order to
+                      apply the change in case we scale down.
+                    type: object
+                  minScaleDownUnits:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    description: |-
+                      MinScaleDownUnits what should be the diff between current state and the desired state in order to
+                      apply the change in case we scale down.
+                    type: object
+                  minScaleUpChangeDiff:
+                    additionalProperties:
+                      type: number
+                    description: |-
+                      MinScaleUpChangeDiff what should be the diff between current state and the desired state in order to
+                      apply the change in case we scale up.
+                    type: object
+                  minScaleUpUnits:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    description: |-
+                      MinScaleUpUnits what should be the diff between current state and the desired state in order to
+                      apply the change in case we scale down.
+                    type: object
+                  overrideJvmXmsXmxEnv:
+                    description: OverrideJvmXmsXmxEnv override JAVA_TOOL_OPTIONS and
+                      _JAVA_OPTIONS environment variables
+                    type: boolean
+                  requiredWindowCoveragePercentage:
+                    description: RequiredWindowCoveragePercentage defines the required
+                      percentage of data points in history window for resource updates
+                      (i.e. blocks updater eviction, admission updates, git pr update)
+                    format: int32
+                    maximum: 100
+                    minimum: 0
+                    type: integer
+                  scaleOutUpdatePolicy:
+                    properties:
+                      requiredWindowCoverageDuration:
+                        type: string
+                      requiredWindowCoveragePercentage:
+                        format: int32
+                        maximum: 100
+                        minimum: 0
+                        type: integer
+                    type: object
+                  skipRolloutUponAutomation:
+                    description: SkipRolloutUponAutomation - if true, UI auto button
+                      will trigger a rollout for the workload when changing to auto
+                    type: boolean
+                  stabilizationWindowSeconds:
+                    description: StabilizationWindowSeconds time to wait between applying
+                      changes to the next pod
+                    properties:
+                      scaleDown:
+                        default: 360
+                        format: int64
+                        type: integer
+                      scaleUp:
+                        default: 360
+                        format: int64
+                        type: integer
+                    type: object
+                  updateByTypeMode:
+                    description: UpdateMode defines if this recommendation is applied
+                      and how (manually or automatically) to the workload under TargetRef
+                      by owner type
+                    properties:
+                      daemonSet:
+                        description: DaemonSetUpdateMode defines if this daemonset
+                          recommendation is applied and how (manually or automatically)
+                          to the workload under TargetRef
+                        enum:
+                        - Ongoing
+                        - OnCreate
+                        - Inplace
+                        type: string
+                      deployment:
+                        description: DeploymentUpdateMode defines if this deployment
+                          recommendation is applied and how (manually or automatically)
+                          to the workload under TargetRef
+                        enum:
+                        - Ongoing
+                        - OnCreate
+                        - Inplace
+                        type: string
+                      deploymentConfig:
+                        description: DeploymentConfigMode defines if this deploymentConfig
+                          recommendation is applied and how (manually or automatically)
+                          to the workload under TargetRef
+                        enum:
+                        - Ongoing
+                        - OnCreate
+                        - Inplace
+                        type: string
+                      family:
+                        description: FamilyUpdateMode defines if this job recommendation
+                          is applied and how (manually or automatically) to the workload
+                          under TargetRef
+                        enum:
+                        - Ongoing
+                        - OnCreate
+                        - Inplace
+                        type: string
+                      job:
+                        description: JobUpdateMode defines if this job recommendation
+                          is applied and how (manually or automatically) to the workload
+                          under TargetRef
+                        enum:
+                        - Ongoing
+                        - OnCreate
+                        - Inplace
+                        type: string
+                      statefulSet:
+                        description: StatefulSetUpdateMode defines if this statefulset
+                          recommendation is applied and how (manually or automatically)
+                          to the workload under TargetRef
+                        enum:
+                        - Ongoing
+                        - OnCreate
+                        - Inplace
+                        type: string
+                    type: object
+                  updateMode:
+                    description: |-
+                      Deprecated
+                      UpdateMode defines if this recommendation is applied and how (manually or automatically) to the workload under TargetRef
+                    enum:
+                    - Ongoing
+                    - OnCreate
+                    - Inplace
+                    type: string
+                type: object
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true

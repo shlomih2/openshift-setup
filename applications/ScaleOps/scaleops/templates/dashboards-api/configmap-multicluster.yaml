@@ -1,0 +1,14 @@
+{{- if ne .Values.parentURL "" -}}
+  {{- $_ := set .Values.multicluster.parent "url" (.Values.parentURL) -}}
+{{- end -}}
+{{- if or (ne .Values.multicluster.parent.url "") (not (empty .Values.multicluster.tags)) }}
+---
+apiVersion: v1
+data:
+  host: '{{ .Values.multicluster.parent.url }}'
+  skipTLSCertValidation: '{{ .Values.multicluster.parent.skipTLSCertValidation }}'
+  tags: '{{ .Values.multicluster.tags | toJson }}'
+kind: ConfigMap
+metadata:
+  name: scaleops-multi-cluster-parent-details
+{{- end }}

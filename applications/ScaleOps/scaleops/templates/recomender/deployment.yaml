@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.recommender (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.recommender.nameOverride "image" .Values.recommender.image )) | nindent 4 }}
+spec:
+  {{- if not .Values.recommender.autoscaling.enabled }}
+  replicas: {{ .Values.recommender.replicaCount }}
+  {{- end }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  selector:
+    matchLabels:
+     {{- (include "scaleops.selectorLabels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.recommender.nameOverride "image" .Values.recommender.image )) | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- (include "scaleops.additionalAnnotations" (dict "Values" .Values "component" .Values.recommender)) | nindent 8 }}
+      labels:
+        scaleops.sh: "true"
+        {{- (include "scaleops.additionalLabels" (dict "Values" .Values "component" .Values.recommender)) | nindent 8 }}
+        {{- (include "scaleops.selectorLabels" (dict "Release" .Release "nameOverride" .Values.recommender.nameOverride)) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Values.recommender.serviceAccount.name }}
+      {{- if not .Values.global.disablePriorityClass }}
+      priorityClassName: scaleops-internal
+      {{- end }}
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecretName }}
+      {{- (include "scaleops.securityContext" (dict "securityContext" .Values.recommender.securityContext "Values" .Values)) | nindent 6 }}
+      volumes:
+        - name: scaleops-token
+          secret:
+            secretName: {{ .Values.global.imagePullSecretName }}
+            optional: true
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+        {{ include "scaleops.secretVolumes" . | nindent 8 }}
+      containers:
+        - name: recommender
+          volumeMounts:
+            - name: scaleops-token
+              mountPath: /var/run/secrets/scaleops.sh/token/
+              readOnly: true
+          {{- include "scaleops.secretVolumeMounts" . | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.recommender.pprofPort }}
+              name: pprof
+          {{- (include "scaleops.containerSecurityContext" (dict "containerSecurityContext" .Values.recommender.containerSecurityContext "Values" .Values)) | nindent 10 }}
+          image: "{{.Values.recommender.image.repository | default .Values.global.image.repository }}:{{ .Values.recommender.image.tag | default .Values.global.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.recommender.image.pullPolicy | default .Values.global.image.pullPolicy }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 9999
+              scheme: HTTP
+            failureThreshold: {{ .Values.recommender.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.recommender.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.recommender.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 9999
+              scheme: HTTP
+            periodSeconds: {{ .Values.recommender.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.recommender.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.recommender.readinessProbe.timeoutSeconds }}
+          command:
+            - /server
+            - recommendation
+            - --prometheus-address=http://{{.Values.prometheusAddress}}
+            - --feature-gates=CheckArmSupport=false
+            - --health-probe-bind-address=:9999
+            - --metrics-bind-address=:{{- .Values.recommender.services.metrics.targetPort }}
+            - --enable-leader-election=false
+            - --lease-duration=8s
+            - --lease-retry-period=2s
+            - --lease-renew-period=6s
+            - -v={{ .Values.recommender.verbose | default .Values.global.verbose  }}
+            - --zap-log-level={{ .Values.recommender.logLevel | default .Values.global.logLevel }}
+            - --pprof-port={{- .Values.recommender.pprofPort }}
+            - --max-concurrent-reconciles={{- .Values.recommender.maxConcurrentReconciles }}
+            - --image-pull-secret-name={{ .Values.global.imagePullSecretName }}
+            - --cluster-name={{ .Values.clusterName }}
+            - --scaleops-region={{ .Values.scaleopsRegion }}
+            {{- range .Values.recommender.extraArgs }}
+            - {{ . }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.recommender.resources | nindent 12 }}
+          env:
+            - name: SCALEOPS_GPU_COST_INCLUSION
+              value: {{ .Values.global.gpuCostInclusion }}
+            - name: GOGC
+              value: "{{ .Values.recommender.gogc }}"
+            {{- include "scaleops.secretEnvVars" . | nindent 12 }}
+      {{- with .Values.recommender.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+        podAntiAffinity:
+          {{- toYaml .Values.recommender.podAntiAffinity | nindent 12 }}
+        podAffinity:
+          {{- toYaml .Values.recommender.podAffinity | nindent 12 }}
+        nodeAffinity:
+          {{- .Values.recommender.nodeAffinity | default .Values.global.nodeAffinity | toYaml | nindent 12 }}
+      {{- with .Values.recommender.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

@@ -1,0 +1,78 @@
+{{- if .Values.global.enableNetworkMonitoring }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.networkMonitor (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.networkMonitor.nameOverride "image" .Values.networkMonitor.image )) | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- (include "scaleops.selectorLabels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.networkMonitor.nameOverride "image" .Values.networkMonitor.image )) | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.networkMonitor.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        scaleops.sh: "true"
+        {{- (include "scaleops.selectorLabels" (dict "Release" .Release "nameOverride" .Values.networkMonitor.nameOverride)) | nindent 8 }}
+    spec:
+      serviceAccountName: {{ .Values.networkMonitor.serviceAccount.name }}
+      {{- if not .Values.global.disablePriorityClass }}
+      priorityClassName: {{ .Values.networkMonitor.priorityClassName | default "scaleops-internal"}}
+      {{- end }}
+      hostNetwork: true
+      hostPID: true
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecretName }}
+      containers:
+        - name: network-monitor
+          image: "{{.Values.networkMonitor.image.repository | default .Values.global.image.repository }}:{{ .Values.networkMonitor.image.tag | default .Values.global.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: cgroup
+              mountPath: /sys/fs/cgroup
+            - name: modules
+              mountPath: /lib/modules
+            - name: netfilter
+              mountPath: /hostproc/sys/net/netfilter
+              mountPropagation: Bidirectional
+            - name: scaleops-token
+              mountPath: /var/run/secrets/scaleops.sh/token/
+              readOnly: true
+          {{- include "scaleops.secretVolumeMounts" . | nindent 12 }}
+          command:
+            - /server
+            - network-monitor
+            - --scaleops-region={{ .Values.scaleopsRegion }}
+            - --image-pull-secret-name={{ .Values.global.imagePullSecretName }}
+            - --zap-log-level={{ .Values.networkMonitor.logLevel | default .Values.global.logLevel }}
+          resources:
+            {{- toYaml .Values.networkMonitor.resources | nindent 12 }}
+      {{- if and .Values.networkMonitor.tolerations (not .Values.networkMonitor.disableTolerations) }}
+      tolerations:
+{{ toYaml .Values.networkMonitor.tolerations | indent 8 }}
+      {{- end }}
+      volumes:
+        - name: cgroup
+          hostPath:
+            path: /sys/fs/cgroup
+        - name: modules
+          hostPath:
+            path: /lib/modules
+        - name: netfilter
+          hostPath:
+            path: /proc/sys/net/netfilter
+        - name: scaleops-token
+          secret:
+            secretName: {{ .Values.global.imagePullSecretName }}
+            optional: true
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+        {{ include "scaleops.secretVolumes" . | nindent 8 }}
+{{- end }}

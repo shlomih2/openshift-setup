@@ -1,0 +1,100 @@
+{{- if .Values.updater.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "scaleops.fullname" (merge .Values.updater (dict "Chart" .Chart "Release" .Release)) }}
+  labels:
+    {{- (include "scaleops.labels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.updater.nameOverride "image" .Values.updater.image )) | nindent 4 }}
+spec:
+  {{- if not .Values.updater.autoscaling.enabled }}
+  replicas: {{ .Values.updater.replicaCount }}
+  {{- end }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- (include "scaleops.selectorLabels" (dict "Chart" .Chart "Release" .Release "nameOverride" .Values.updater.nameOverride "image" .Values.updater.image )) | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        {{- (include "scaleops.additionalAnnotations" (dict "Values" .Values "component" .Values.updater)) | nindent 8 }}
+      labels:
+        scaleops.sh: "true"
+        {{- (include "scaleops.additionalLabels" (dict "Values" .Values "component" .Values.updater)) | nindent 8 }}
+        {{- (include "scaleops.selectorLabels" (dict "Release" .Release "nameOverride" .Values.updater.nameOverride)) | nindent 8 }}
+    spec:
+      imagePullSecrets:
+        - name: {{ .Values.global.imagePullSecretName }}
+      serviceAccountName: {{ include "scaleops.name" .Values.updater }}
+      {{- if not .Values.global.disablePriorityClass }}
+      priorityClassName: scaleops-internal
+      {{- end }}
+      {{- (include "scaleops.securityContext" (dict "securityContext" .Values.updater.securityContext "Values" .Values)) | nindent 6 }}
+      volumes:
+        - name: scaleops-token
+          secret:
+            secretName: {{ .Values.global.imagePullSecretName }}
+            optional: true
+            items:
+              - key: .dockerconfigjson
+                path: config.json
+        {{ include "scaleops.secretVolumes" . | nindent 8 }}
+      containers:
+        - name: {{ .Values.updater.containerName }}
+          volumeMounts:
+            - name: scaleops-token
+              mountPath: /var/run/secrets/scaleops.sh/token/
+              readOnly: true
+            {{- include "scaleops.secretVolumeMounts" . | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.updater.pprofPort }}
+              name: pprof
+          {{- (include "scaleops.containerSecurityContext" (dict "containerSecurityContext" .Values.updater.containerSecurityContext "Values" .Values)) | nindent 10 }}
+          image: "{{.Values.updater.image.repository | default .Values.global.image.repository }}:{{ .Values.updater.image.tag | default .Values.global.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.updater.image.pullPolicy | default .Values.global.image.pullPolicy }}
+          livenessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+              scheme: HTTP
+            failureThreshold: {{ .Values.updater.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.updater.livenessProbe.timeoutSeconds }}
+            periodSeconds: {{ .Values.updater.livenessProbe.periodSeconds }}
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+              scheme: HTTP
+            periodSeconds: {{ .Values.updater.readinessProbe.periodSeconds }}
+            successThreshold: {{ .Values.updater.readinessProbe.successThreshold }}
+            timeoutSeconds: {{ .Values.updater.readinessProbe.timeoutSeconds }}
+          command:
+            - /server
+            - updater
+            - --pprof-port={{- .Values.updater.pprofPort }}
+            - -v={{ .Values.updater.verbose | default .Values.global.verbose }}
+            - --zap-log-level={{ .Values.updater.logLevel | default .Values.global.logLevel  }}
+            - --healthcheck-container-image={{ .Values.healthCheck.image.repository | default .Values.global.image.repository }}:{{ .Values.healthCheck.image.tag | default .Values.global.image.tag | default .Chart.AppVersion }}
+            - --image-pull-secret-name={{ .Values.global.imagePullSecretName }}
+            - --cluster-name={{ .Values.clusterName }}
+            - --scaleops-region={{ .Values.scaleopsRegion }}
+          resources:
+            {{- toYaml .Values.updater.resources | nindent 12 }}
+          env:
+            {{- include "scaleops.secretEnvVars" . | nindent 12 }}
+      {{- with .Values.updater.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      affinity:
+        podAntiAffinity:
+          {{- toYaml .Values.updater.podAntiAffinity | nindent 12 }}
+        podAffinity:
+          {{- toYaml .Values.updater.podAffinity | nindent 12 }}
+        nodeAffinity:
+          {{- .Values.updater.nodeAffinity | default .Values.global.nodeAffinity | toYaml | nindent 12 }}
+      {{- with .Values.updater.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
