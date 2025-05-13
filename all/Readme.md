@@ -4,7 +4,13 @@
 The file "rhcos-4.12.30-x86_64-vmware.x86_64.ova" os a template of coreos - already uploaded as template to vSphere
 
 The file "pullsecret.txt" is the subscribtion retrived from openshift - currently its a trial subscription with 60 day expiration
+Get it here:
+https://console.redhat.com/openshift/install/pull-secret
 
+
+To delete exsting openshift cluster delete the installer directory then tf destroy then get the new pull secret for the new cluster
+
+to create the new cluster make sure to change the cluster id in the vars file and delte the old dns recordsand create new ones search for the word api in the vars file there is an explinations tehre
 ## Sources:
 
 

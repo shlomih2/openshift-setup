@@ -7,7 +7,7 @@
 // To shut down environment: https://docs.openshift.com/container-platform/4.13/backup_and_restore/graceful-cluster-shutdown.html
 
 // ID identifying the cluster to create. Use your username so that resources created can be tracked back to you.
-cluster_id = "ocp-shlomi-lab-0"
+cluster_id = "ocp-shlomi-lab-1"
 
 // Base domain from which the cluster domain is a subdomain.
 base_domain = "terasky.demo"
@@ -26,7 +26,7 @@ vsphere_cluster = "Demo-Cluster"
 
 // The relative path to the folder which should be used or created for VMs.
 # vsphere_folder = "Openshift-lab"
-vsphere_folder = "LABS/Shlomi/Openshift-lab/ocp-shlomi-lab-0"
+vsphere_folder = "LABS/Shlomi/Openshift-lab/ocp-shlomi-lab-1"
 
 // Name of the vSphere data center. The dev cluster is "dc1".
 vsphere_datacenter = "Demo-Datacenter"
@@ -85,6 +85,9 @@ create_openshift_vips = true
 
 // If create_openshift_vips is set to true, you must provide the IP addresses that will be used for the api and *.apps endpoints
 // These IP addresses MUST be on the same CIDR range as machine_cidr
+// Make  sure they both have DNS records
+// For api - api.ocp-shlomi-lab-1.terasky.demo
+// For ingress - *.apps.ocp-shlomi-lab-1.terasky.demo
 openshift_api_virtualip = "172.16.85.201"
 openshift_ingress_virtualip = "172.16.85.200"
 
