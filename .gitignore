@@ -1,6 +1,8 @@
 # Local .terraform directories
 **/.terraform/*
 
+terraform-openshift4-vmware/*
+
 # .tfstate files
 **/*.tfstate
 **/*.tfstate.*
