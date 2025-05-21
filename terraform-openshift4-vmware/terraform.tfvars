@@ -16,12 +16,14 @@ base_domain = "terasky.demo"
 vsphere_server = "demo-vc-01.terasky.demo"
 
 // User on the vSphere server.
-# vsphere_user = "tkg-admin@terasky.demo"
-vsphere_user = "shlomi@terasky.demo"
+# To use environment variables instead, set TF_VAR_vsphere_user
+# Example: export TF_VAR_vsphere_user="your-username@domain.com"
+vsphere_user = ""
 
 // Password of the user on the vSphere server.
-# vsphere_password = "VMware1!"
-vsphere_password = "Aa123456"
+# To use environment variables instead, set TF_VAR_vsphere_password
+# Example: export TF_VAR_vsphere_password="your-password"
+vsphere_password = ""
 
 // Name of the vSphere cluster. The dev cluster is "devel".
 vsphere_cluster = "Demo-Cluster"
