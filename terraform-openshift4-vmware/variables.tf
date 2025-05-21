@@ -184,7 +184,7 @@ variable "openshift_pull_secret" {
 
 variable "openshift_sdn" {
   type    = string
-  default = "OpenShiftSDN"
+  default = "OVNKubernetes"
 }
 
 variable "openshift_cluster_cidr" {
@@ -204,8 +204,8 @@ variable "openshift_host_prefix" {
 
 variable "openshift_version" {
   type        = string
-  description = "Specify the OpenShift version you want to deploy.  Must be 4.6.x or later to use this automation"
-  default     = "4.6.16"
+  description = "Specify the OpenShift version you want to deploy.  Must be 4.X.Y or later to use this automation"
+  default     = "4.18.14"
 }
 
 variable "create_openshift_vips" {

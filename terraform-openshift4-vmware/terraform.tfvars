@@ -18,12 +18,12 @@ vsphere_server = "demo-vc-01.terasky.demo"
 // User on the vSphere server.
 # To use environment variables instead, set TF_VAR_vsphere_user
 # Example: export TF_VAR_vsphere_user="your-username@domain.com"
-vsphere_user = ""
+#vsphere_user = ""
 
 // Password of the user on the vSphere server.
 # To use environment variables instead, set TF_VAR_vsphere_password
 # Example: export TF_VAR_vsphere_password="your-password"
-vsphere_password = ""
+#vsphere_password = ""
 
 // Name of the vSphere cluster. The dev cluster is "devel".
 vsphere_cluster = "Demo-Cluster"
@@ -45,8 +45,8 @@ vsphere_preexisting_resourcepool = true
 vsphere_resource_pool = "/Demo-Datacenter/host/Demo-Cluster/Resources"
 
 // Name of the RHCOS VM template to clone to create VMs for the cluster
-# vm_template = "rhcos-4.18.1"
-vm_template = "coreos"
+ vm_template = "rhcos-4.18.1"
+#vm_template = "coreos"
 
 // Name of the VM Network for your cluster nodes
 vm_network = "shlomi-tkgm-mgmt"
