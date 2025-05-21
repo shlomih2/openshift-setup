@@ -100,11 +100,11 @@ openshift_ingress_virtualip = "172.16.85.200"
 ssh_public_key = "~/.ssh/id_rsa_ocp.pub"
 
 // The number of storage VMs to create. Default is 0.  Set to 0 or 3
-// storage_count = 3
+storage_count = 3
 
 
 // The IP addresses to assign to the storage VMs. The length of this list must
 // match the value of storage_count.
-//storage_ip_addresses = ["172.16.85.87", "172.16.85.88", "172.16.85.89"]
+storage_ip_addresses = ["172.16.85.87", "172.16.85.88", "172.16.85.89"]
 
 
