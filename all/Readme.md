@@ -1,11 +1,22 @@
 # Installing OCP on Baremetal
 
+## Prereqs
+1. DNS needs to be configured for external cluster access.
+api.cluster_id.base_domain points to openshift_api_virtualip
+*.apps.cluster_id.base_domain points to openshift_ingress_virtualip
+Point both of those DNS A or CNAME records to your LoadBalancers
+
+2. CoreOS OVA must be uploaded to vCenter as a template.
 
 The file "rhcos-4.12.30-x86_64-vmware.x86_64.ova" os a template of coreos - already uploaded as template to vSphere
+There are two templates in the demo env:
+1. coreos - version 4.12 ocp
+2. rhcos-4.18.1 - new that i uploaded
 
 The file "pullsecret.txt" is the subscribtion retrived from openshift - currently its a trial subscription with 60 day expiration
 Get it here:
 https://console.redhat.com/openshift/install/pull-secret
+
 
 
 To delete exsting openshift cluster delete the installer directory then tf destroy then get the new pull secret for the new cluster

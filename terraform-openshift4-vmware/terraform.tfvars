@@ -16,10 +16,12 @@ base_domain = "terasky.demo"
 vsphere_server = "demo-vc-01.terasky.demo"
 
 // User on the vSphere server.
-vsphere_user = "tkg-admin@terasky.demo"
+# vsphere_user = "tkg-admin@terasky.demo"
+vsphere_user = "shlomi@terasky.demo"
 
 // Password of the user on the vSphere server.
-vsphere_password = "VMware1!"
+# vsphere_password = "VMware1!"
+vsphere_password = "Aa123456"
 
 // Name of the vSphere cluster. The dev cluster is "devel".
 vsphere_cluster = "Demo-Cluster"
@@ -41,6 +43,7 @@ vsphere_preexisting_resourcepool = true
 vsphere_resource_pool = "/Demo-Datacenter/host/Demo-Cluster/Resources"
 
 // Name of the RHCOS VM template to clone to create VMs for the cluster
+# vm_template = "rhcos-4.18.1"
 vm_template = "coreos"
 
 // Name of the VM Network for your cluster nodes

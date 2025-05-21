@@ -6,13 +6,13 @@
 *.tfstate.*
 
 # .tfvars files
-*.tfvars
+# *.tfvars
 
 # Mac stuff
 .DS_Store
 
 # openshift pull-secret
-pull-secret.txt
+# pull-secret.txt
 
 # local
 makefile

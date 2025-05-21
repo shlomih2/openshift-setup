@@ -236,3 +236,6 @@ module "storage_vm" {
   vm_gateway    = var.vm_gateway == null ? cidrhost(var.machine_cidr, 1) : var.vm_gateway
 }
 
+output "kubeconfig" {
+  value = "Run this command to set the kubeconfig: export KUBECONFIG=/home/k8s/openshift/terraform-openshift4-vmware/installer/${var.cluster_id}/auth/kubeconfig"
+}
