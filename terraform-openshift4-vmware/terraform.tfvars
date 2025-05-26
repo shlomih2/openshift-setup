@@ -22,15 +22,20 @@ vsphere_server = "demo-vc-01.terasky.demo"
 
 // Password of the user on the vSphere server.
 # To use environment variables instead, set TF_VAR_vsphere_password
+
 # Example: export TF_VAR_vsphere_password="your-password"
+
 #vsphere_password = ""
 
-// Name of the vSphere cluster. The dev cluster is "devel".
+// Name of the vSphere cluster. 
 vsphere_cluster = "Demo-Cluster"
 
 // The relative path to the folder which should be used or created for VMs.
 # vsphere_folder = "Openshift-lab"
+vsphere_preexisting_folder = true
 vsphere_folder = "LABS/Shlomi/Openshift-lab/ocp-shlomi-lab-1"
+
+#vsphere_folder = "LABS/Oleg/Openshift-lab/ocp-shlomi-lab-1"
 
 // Name of the vSphere data center. The dev cluster is "dc1".
 vsphere_datacenter = "Demo-Datacenter"
@@ -45,7 +50,7 @@ vsphere_preexisting_resourcepool = true
 vsphere_resource_pool = "/Demo-Datacenter/host/Demo-Cluster/Resources"
 
 // Name of the RHCOS VM template to clone to create VMs for the cluster
- vm_template = "rhcos-4.18.1"
+vm_template = "rhcos-4.18.1"
 #vm_template = "coreos"
 
 // Name of the VM Network for your cluster nodes
@@ -60,8 +65,8 @@ machine_cidr = "172.16.85.0/24"
 // The number of control plane VMs to create. Default is 3.
 control_plane_count = 3
 
-// The number of compute VMs to create. Default is 3.
-compute_count = 3
+// The number of compute VMs to create. Default is 0.
+# compute_count = 3
 
 // Set bootstrap_ip, control_plane_ip, and compute_ip if you want to use static IPs reserved someone else, rather than the IPAM server.
 
@@ -72,7 +77,7 @@ bootstrap_ip_address = "172.16.85.80"
 control_plane_ip_addresses = ["172.16.85.81", "172.16.85.82", "172.16.85.83"]
 
 // The IP addresses to assign to the compute VMs. The length of this list must match the value of compute_count.
-compute_ip_addresses = ["172.16.85.84", "172.16.85.85", "172.16.85.86"]
+# compute_ip_addresses = ["172.16.85.84", "172.16.85.85", "172.16.85.86"]
 
 // The IP addresses of your DNS servers for your OpenShift nodes
 vm_dns_addresses = ["10.100.100.100"]
@@ -102,9 +107,8 @@ ssh_public_key = "~/.ssh/id_rsa_ocp.pub"
 // The number of storage VMs to create. Default is 0.  Set to 0 or 3
 storage_count = 3
 
-
 // The IP addresses to assign to the storage VMs. The length of this list must
 // match the value of storage_count.
 storage_ip_addresses = ["172.16.85.87", "172.16.85.88", "172.16.85.89"]
-
+storage_node_nvme_disk_size = 200
 

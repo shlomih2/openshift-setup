@@ -116,7 +116,7 @@ variable "control_plane_disk_size" {
 
 variable "compute_count" {
   type    = string
-  default = "3"
+  default = "0"
 }
 
 variable "compute_ip_addresses" {
@@ -277,4 +277,19 @@ variable "airgapped" {
     enabled    = false
     repository = ""
   }
+}
+
+variable "storage_node_extra_disk_size" {
+  type    = number
+  default = 0
+}
+
+variable "storage_node_nvme_disk_size" {
+  type    = number
+  default = 0
+}
+
+variable "storage_node_extra_nvme_disk_size" {
+  type    = number
+  default = 0
 }

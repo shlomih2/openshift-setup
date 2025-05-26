@@ -69,6 +69,16 @@ variable "extra_disk_size" {
   default = 0
 }
 
+variable "nvme_disk_size" {
+  type    = number
+  default = 0
+}
+
+variable "extra_nvme_disk_size" {
+  type    = number
+  default = 0
+}
+
 variable "nested_hv_enabled" {
   type    = bool
   default = false

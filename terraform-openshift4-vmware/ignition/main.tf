@@ -376,6 +376,7 @@ resource "null_resource" "generate_ignition" {
     local_file.ntp_masters,
     local_file.ntp_workers
   ]
+
 }
 
 
@@ -398,5 +399,12 @@ data "local_file" "worker_ignition" {
   depends_on = [
     null_resource.generate_ignition
   ]
+}
+
+resource "null_resource" "cleanup_installer_dir" {
+  provisioner "local-exec" {
+    when    = destroy
+    command = "rm -rf ${path.root}/installer/*"
+  }
 }
 

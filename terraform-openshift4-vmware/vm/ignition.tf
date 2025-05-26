@@ -6,7 +6,7 @@ data "ignition_file" "hostname" {
   for_each = var.hostnames_ip_addresses
 
   path = "/etc/hostname"
-  mode = "420"
+  mode = 420
 
   content {
     content = element(split(".", each.key), 0)

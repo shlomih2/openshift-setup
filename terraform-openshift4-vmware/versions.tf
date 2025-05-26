@@ -7,7 +7,7 @@ terraform {
       source = "hashicorp/tls"
     }
     vsphere = {
-      source = "hashicorp/vsphere"
+      source = "vmware/vsphere"
     }
   }
   required_version = ">= 0.13"

@@ -60,11 +60,18 @@ data "vsphere_resource_pool" "resource_pool" {
 }
 
 resource "vsphere_folder" "folder" {
-  count = var.vsphere_preexisting_folder ? 0 : 1
+  count = var.vsphere_preexisting_folder && var.vsphere_folder != "" ? 0 : 1
 
   path          = var.vsphere_folder == "" ? var.cluster_id : var.vsphere_folder
   type          = "vm"
   datacenter_id = data.vsphere_datacenter.dc.id
+  lifecycle {
+    ignore_changes = [
+      path
+    ]
+    create_before_destroy = true
+    prevent_destroy = true
+  }
 }
 
 resource "tls_private_key" "installkey" {
@@ -232,6 +239,9 @@ module "storage_vm" {
   num_cpus      = var.storage_num_cpus
   memory        = var.storage_memory
   disk_size     = var.storage_disk_size
+  extra_disk_size = var.storage_node_extra_disk_size
+  nvme_disk_size = var.storage_node_nvme_disk_size
+  extra_nvme_disk_size = var.storage_node_extra_nvme_disk_size
   dns_addresses = var.vm_dns_addresses
   vm_gateway    = var.vm_gateway == null ? cidrhost(var.machine_cidr, 1) : var.vm_gateway
 }
