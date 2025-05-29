@@ -1,0 +1,40 @@
+# SOURCE: https://install.portworx.com/3.2?operator=true&mc=false&kbver=1.31.8&ns=portworx&b=true&dmthin=true&md=%2Fdev%2Fsdb&s=%2Fdev%2Fsdc&r=17001&c=px-cluster-fec40a18-0667-42cc-9a89-b11960e665e2&osft=true&stork=true&csi=true&tel=true&st=k8s
+kind: StorageCluster
+apiVersion: core.libopenstorage.org/v1
+metadata:
+  name: px-cluster-ocp
+  namespace: portworx
+  annotations:
+    portworx.io/install-source: "https://install.portworx.com/3.2?operator=true&mc=false&kbver=1.31.8&ns=portworx&b=true&dmthin=true&md=%2Fdev%2Fsdb&s=%2Fdev%2Fsdc&r=17001&c=px-cluster-fec40a18-0667-42cc-9a89-b11960e665e2&osft=true&stork=true&csi=true&tel=true&st=k8s"
+    portworx.io/is-openshift: "true"
+    portworx.io/misc-args: " -T px-storev2 "
+spec:
+  env:
+  - name: "PX_LOGLEVEL"
+    value: "debug"
+  deleteStrategy:
+    type: UninstallAndWipe
+  image: portworx/oci-monitor:3.2.3
+  kvdb:
+    internal: true
+  storage:
+    devices:
+    - /dev/nvme0n1p2
+    systemMetadataDevice: /dev/nvme0n1p1
+  runtimeOptions:
+    default-io-profile: "6"
+  secretsProvider: k8s
+  startPort: 17001
+  stork:
+    enabled: true
+    args:
+      webhook-controller: "true"
+  autopilot:
+    enabled: true
+  csi:
+    enabled: true
+  monitoring:
+    telemetry:
+      enabled: true
+    prometheus:
+      exportMetrics: true

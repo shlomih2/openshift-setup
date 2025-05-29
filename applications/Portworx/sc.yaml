@@ -1,0 +1,26 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"allowVolumeExpansion":true,"apiVersion":"storage.k8s.io/v1","kind":"StorageClass","metadata":{"annotations":{},"name":"px-csi-poc"},"parameters":{"fastpath":"true","nodiscard":"true","priority_io":"high","repl":"1","secure":"false"},"provisioner":"pxd.portworx.com","reclaimPolicy":"Delete","volumeBindingMode":"Immediate"}
+    storageclass.kubernetes.io/is-default-class: "true"
+  name: px-csi-no-repl
+parameters:
+  fastpath: "true"
+  nodiscard: "true"
+  priority_io: high
+  repl: "1"
+  secure: "false"
+  block_size: "131072"        # 128 KiB matches Aerospike SSD write-block-size
+  queue_depth: "256"          # bump if NVMe supports it
+  createoptions: "-m reflink=0 -l size=32m -n lazy_itable_init=0"
+mountOptions:
+  - noatime
+  - nodiratime
+  - nobarrier
+
+provisioner: pxd.portworx.com
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
