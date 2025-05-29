@@ -8,6 +8,7 @@
 
 // ID identifying the cluster to create. Use your username so that resources created can be tracked back to you.
 cluster_id = "ocp-shlomi-lab-1"
+openshift_version = "4.18.14"
 
 // Base domain from which the cluster domain is a subdomain.
 base_domain = "terasky.demo"

@@ -41,7 +41,7 @@ resource "vsphere_virtual_machine" "vm" {
       label            = "nvme_disk${disk.key}"
       size             = disk.value
       thin_provisioned = var.disk_thin_provisioned
-      unit_number      = disk.key
+      unit_number      = disk.key+length(local.disk_sizes)
       controller_type  = "nvme"
     }
   }
