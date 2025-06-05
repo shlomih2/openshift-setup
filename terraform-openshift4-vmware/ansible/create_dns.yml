@@ -1,0 +1,20 @@
+- name: Create DNS A Record
+  hosts: dns
+  gather_facts: no
+  tasks:
+    - name: Add DNS A record api
+      win_dns_record:
+        name: "{{ dns_name }}"
+        type: A
+        value: "{{ dns_ip }}"
+        zone: "{{ dns_zone }}"
+        state: present
+
+    - name: Add DNS A record ingress
+      win_dns_record:
+        name: "{{ dns_name_ingress }}"
+        type: A
+        value: "{{ dns_ip_ingress }}"
+        zone: "{{ dns_zone }}"
+        state: present
+

@@ -7,7 +7,7 @@
 // To shut down environment: https://docs.openshift.com/container-platform/4.13/backup_and_restore/graceful-cluster-shutdown.html
 
 // ID identifying the cluster to create. Use your username so that resources created can be tracked back to you.
-cluster_id = "ocp-shlomi-lab-1"
+cluster_id = "ocp-oleg-lab-1"
 openshift_version = "4.18.14"
 
 // Base domain from which the cluster domain is a subdomain.
@@ -34,7 +34,7 @@ vsphere_cluster = "Demo-Cluster"
 // The relative path to the folder which should be used or created for VMs.
 # vsphere_folder = "Openshift-lab"
 vsphere_preexisting_folder = true
-vsphere_folder = "LABS/Shlomi/Openshift-lab/ocp-shlomi-lab-1"
+vsphere_folder = "LABS/Shlomi/Openshift-lab/ocp-oleg-lab-1"
 
 #vsphere_folder = "LABS/Oleg/Openshift-lab/ocp-shlomi-lab-1"
 
@@ -111,5 +111,6 @@ storage_count = 3
 // The IP addresses to assign to the storage VMs. The length of this list must
 // match the value of storage_count.
 storage_ip_addresses = ["172.16.85.87", "172.16.85.88", "172.16.85.89"]
-storage_node_nvme_disk_size = 200
+storage_node_nvme_disk_size = 64
+storage_node_extra_nvme_disk_size = 100
 

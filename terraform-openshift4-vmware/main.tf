@@ -21,6 +21,8 @@ provider "vsphere" {
   allow_unverified_ssl = true
 }
 
+provider "null" {}
+
 data "vsphere_datacenter" "dc" {
   name = var.vsphere_datacenter
 }
