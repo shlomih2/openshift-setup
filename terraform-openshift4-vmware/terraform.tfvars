@@ -33,8 +33,8 @@ vsphere_cluster = "Demo-Cluster"
 
 // The relative path to the folder which should be used or created for VMs.
 # vsphere_folder = "Openshift-lab"
-vsphere_preexisting_folder = true
-vsphere_folder = "LABS/Shlomi/Openshift-lab/ocp-oleg-lab-1"
+vsphere_preexisting_folder = false
+vsphere_folder = "LABS/Shlomi/Openshift-lab/ocp-oleg-lab-2"
 
 #vsphere_folder = "LABS/Oleg/Openshift-lab/ocp-shlomi-lab-1"
 

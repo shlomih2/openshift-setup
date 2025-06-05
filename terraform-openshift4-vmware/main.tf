@@ -67,13 +67,7 @@ resource "vsphere_folder" "folder" {
   path          = var.vsphere_folder == "" ? var.cluster_id : var.vsphere_folder
   type          = "vm"
   datacenter_id = data.vsphere_datacenter.dc.id
-  lifecycle {
-    ignore_changes = [
-      path
-    ]
-    create_before_destroy = true
-    prevent_destroy = true
-  }
+
 }
 
 resource "tls_private_key" "installkey" {
