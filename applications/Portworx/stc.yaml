@@ -19,18 +19,21 @@ spec:
     internal: true
   storage:
     devices:
-    - /dev/nvme0n1p2
-    systemMetadataDevice: /dev/nvme0n1p1
+    - /dev/nvme0n2
+    systemMetadataDevice: /dev/nvme0n1
   runtimeOptions:
     default-io-profile: "6"
   secretsProvider: k8s
   startPort: 17001
   stork:
     enabled: true
+    lockImage: true
+    image: openstorage/stork:25.1.0
     args:
       webhook-controller: "true"
   autopilot:
     enabled: true
+    
   csi:
     enabled: true
   monitoring:
@@ -38,3 +41,4 @@ spec:
       enabled: true
     prometheus:
       exportMetrics: true
+

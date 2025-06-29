@@ -22,5 +22,4 @@ mountOptions:
 
 provisioner: pxd.portworx.com
 reclaimPolicy: Delete
-volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true

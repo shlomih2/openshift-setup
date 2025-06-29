@@ -16,7 +16,7 @@
       # <int> org id. will default to orgId 1 if not specified
       orgId: 1
       # <string> url
-      url: https://<THANOS_QUERIER_HOST>
+      url: https://thanos-querier-openshift-monitoring.apps.ocp-oleg-lab-1.terasky.demo
       # <bool> mark as default datasource. Max one per org
       isDefault: true
       # <map> fields that will be converted to json and stored in json_data
@@ -26,7 +26,7 @@
         tlsSkipVerify: true
       # <string> json object of data that will be encrypted.
       secureJsonData:
-        httpHeaderValue1: 'Bearer <BEARER_TOKEN>'
+        httpHeaderValue1: 'Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6InhjMGZJR21razlETnFDWTloV0lCc2NsUXV4RWJyMnNiNlpDNHZWSGFBdjgifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTc4MDkyMDE4OSwiaWF0IjoxNzQ5Mzg0MTg5LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJqdGkiOiJjZjFhOThiOC1mYThjLTQ4ZTYtOGQ5NS05ZDk1ODYxMzJkYTQiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6InBvcnR3b3J4Iiwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImdyYWZhbmEiLCJ1aWQiOiJlZGE5NTEyNi1lYjY1LTRmOWMtYTRlYi1mNWY2ZjQ5YzQyOTcifX0sIm5iZiI6MTc0OTM4NDE4OSwic3ViIjoic3lzdGVtOnNlcnZpY2VhY2NvdW50OnBvcnR3b3J4OmdyYWZhbmEifQ.HMot3dlqBUMYdnFE87OEnDmmLLUejGkQjSbb-lxXouBS-1PlXXLBJkToYUcHECgncpSVEr5zuKeng8Ea9M_6abo3CVoSBu_3zNZYC6M9ZhXWPB7tMePA1EzttFILlFuK6D9fyRpxRsox0tLwePCA2JgvkhLx31QfbVqRqu4L-cuZnwI2Gk1GBJ7uwW0MBzO5l88eLIDgxt6v6pMkdAHrkdAU3pepAhSkwk4mWvu6J7k0xF6772DSe_Ge3T6G4ceI4qxwmwlfWGa0OjOjEXucfnbZudm7licW3wIP6TIZSZcV1eFTKyenaEbNhbpHHKHdnmWzRgQhpNQW4k37ewUNzs46EP8R43MlI-0ClmYP-sSgZoqKRQiD7szyVBApwQkHBdERb-DYS5TxLoxk7SIJRWmLrabok_KefBmzitvEybfI1gvEx-FFWKa-H9P-vEpuHLirfTzDtGDa9raXL0sXnbDHAc1Odxnu-4S_CLmiRVz525fdptScVj3p8rA4-MPakBeYrqxXOCB_vZo986FSriqi28kTOnc0PHb9cgwYnQNeeumZQ92_gy7OmC939IjHneSp0u9RwLg0voTlGLZHB9_pzrm5zhZi4HYiErAdnlR0_XvlwKPy-anILL0b3N-DjCU6OAVJB2iujeDfCuujN_QCRXuxgS7KcR6TAY4axo8'
       version: 1
       # <bool> allow users to edit datasources from the UI.
       editable: true
