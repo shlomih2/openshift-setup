@@ -1,0 +1,313 @@
+global:
+  enabled: true
+  # Comment: Enables all components within the chart by default.
+  # Original value: true (no change)
+
+  tlsDisable: false
+  # Comment: Enables TLS for end-to-end encrypted transport.
+  # Original value: true (changed to false to enable TLS)
+
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 250m
+    limits:
+      memory: 256Mi
+      cpu: 250m
+  # Comment: Defines resource requests and limits globally for all components.
+  # Original value: {} (empty, no resources specified globally in original)
+
+  # imagePullSecrets:
+  #   - name: <NAME_OF_PULL_SECRET>
+  # Comment: Specifies an image pull secret for registry authentication.
+  # Original value: [] (empty array, no pull secrets defined)
+
+injector:
+  enabled: true
+  # Comment: Enables Vault Agent injection explicitly.
+  # Original value: "-" (defaults to global.enabled, which is true)
+
+  replicas: 1
+  # Comment: Sets the number of injector replicas.
+  # Original value: 1 (no change)
+
+  # image sets the repo and tag of the vault-k8s image to use for the injector.
+  image:
+    repository: "hashicorp/vault-k8s"
+    tag: "1.5.0-ubi"
+  # Comment: Customizes the vault-k8s image to use a specific repository and UBI-based tag.
+  # Original value:
+  #   repository: "hashicorp/vault-k8s"
+  #   tag: "1.6.2"
+
+  # agentImage sets the repo and tag of the Vault image to use for the Vault Agent containers.
+  agentImage:
+    repository: "hashicorp/vault"
+    tag: "1.16.14-ent-ubi"
+  # Comment: Uses an enterprise Vault image with a UBI base from a custom repository.
+  # Original value:
+  #   repository: "hashicorp/vault"
+  #   tag: "1.19.0"
+
+server:
+  enabled: true
+  # Comment: Explicitly enables the Vault server deployment.
+  # Original value: "-" (defaults to global.enabled, which is true)
+
+  # [Enterprise Only] Configures the enterprise license secret.
+  enterpriseLicense:
+    secretName: "vault-enterprise-license"
+    # secretKey: "license" # Commented out, using default key name.
+  # Comment: Specifies a Kubernetes secret containing the Vault Enterprise license.
+  # Original value:
+  #   secretName: ""
+  #   secretKey: "license" (default, not explicitly set here)
+
+  image:
+    repository: "hashicorp/vault"
+    tag: "1.16.14-ent-ubi"
+  # Comment: Uses an enterprise Vault image with a UBI base from a custom repository.
+  # Original value:
+  #   repository: "hashicorp/vault"
+  #   tag: "1.19.0"
+
+  updateStrategyType: "OnDelete"
+  # Comment: Sets the StatefulSet update strategy to "OnDelete" for manual control.
+  # Original value: "OnDelete" (no change)
+
+  resources:
+    requests:
+      memory: 8Gi
+      cpu: 2000m
+    limits:
+      memory: 16Gi
+      cpu: 2000m
+  # Comment: Increases resource requests and limits for the Vault server.
+  # Original value: {} (empty, no resources specified)
+
+  authDelegator:
+    enabled: true
+    # Comment: Enables cluster role binding for Kubernetes auth method.
+    # Original value: true (no change)
+
+  logLevel: "info"
+  # Comment: Sets the logging verbosity to "info".
+  # Original value: "" (empty, no specific log level set)
+
+  readinessProbe:
+    enabled: true
+    path: "/v1/sys/health?standbyok=true&sealedcode=204&uninitcode=204"
+  # Comment: Customizes readiness probe to account for HA mode with standby nodes.
+  # Original value:
+  #   enabled: true
+  #   path: not set (uses exec by default)
+  #   initialDelaySeconds: 5
+  #   periodSeconds: 5
+
+  livenessProbe:
+    enabled: true
+    path: "/v1/sys/health?standbyok=true"
+    initialDelaySeconds: 60
+  # Comment: Enables and customizes liveness probe for HA mode.
+  # Original value:
+  #   enabled: false
+  #   path: "/v1/sys/health?standbyok=true"
+  #   initialDelaySeconds: 60
+  #   failureThreshold: 2
+  #   periodSeconds: 5
+  #   timeoutSeconds: 3
+
+  ingress:
+    enabled: true
+
+  dataStorage:
+    enabled: true
+    # Comment: Enables persistent storage for Vault data.
+    # Original value: true (no change)
+
+    size: 50Gi
+    # Comment: Increases the PVC size for data storage.
+    # Original value: 10Gi
+
+    mountPath: "/vault/data"
+    # Comment: Specifies the mount path for data storage.
+    # Original value: "/vault/data" (no change)
+
+    storageClass: <NAME_OF_STORAGE_CLASS>
+    # Comment: Uses a specific storage class for the PVC.
+    # Original value: null (uses default storage class)
+
+    accessMode: ReadWriteOnce
+    # Comment: Sets the access mode for the PVC.
+    # Original value: ReadWriteOnce (no change)
+
+    annotations: {}
+    # Comment: No additional annotations for the PVC.
+    # Original value: {} (empty)
+
+    labels: {}
+    # Comment: No additional labels for the PVC.
+    # Original value: {} (empty)
+
+  auditStorage:
+    enabled: true
+    # Comment: Enables persistent storage for audit logs.
+    # Original value: false
+
+    storageClass: <NAME_OF_STORAGE_CLASS>
+    # Comment: Specifies the storage class for audit logs.
+    # Original value: null (uses default storage class)
+
+  extraEnvironmentVars:
+    VAULT_CACERT: /vault/userconfig/vault-ha-tls/vault.ca
+    VAULT_TLSCERT: /vault/userconfig/vault-ha-tls/vault.crt
+    VAULT_TLSKEY: /vault/userconfig/vault-ha-tls/vault.key
+  # Comment: Adds environment variables for TLS certificate paths.
+  # Original value: {} (empty)
+
+  # For Auto unseal with Azure Key Vault
+  # extraSecretEnvironmentVars:
+  #   - envName: AZURE_TENANT_ID
+  #     secretName: azure-vault-secret
+  #     secretKey: AZURE_TENANT_ID
+  #   - envName: AZURE_CLIENT_ID
+  #     secretName: azure-vault-secret
+  #     secretKey: AZURE_CLIENT_ID
+  #   - envName: AZURE_CLIENT_SECRET
+  #     secretName: azure-vault-secret
+  #     secretKey: AZURE_CLIENT_SECRET
+  #   - envName: VAULT_AZUREKEYVAULT_KEY_NAME
+  #     secretName: azure-vault-secret
+  #     secretKey: VAULT_AZUREKEYVAULT_KEY_NAME
+  #   - envName: VAULT_AZUREKEYVAULT_VAULT_NAME
+  #     secretName: azure-vault-secret
+  #     secretKey: VAULT_AZUREKEYVAULT_VAULT_NAME
+
+
+  # For Auto unseal with AWS KMS
+  # extraSecretEnvironmentVars:
+  # - envName: AWS_ACCESS_KEY_ID
+  #   secretName: aws-vault-secret
+  #   secretKey: AWS_ACCESS_KEY_ID
+
+  # - envName: AWS_SECRET_ACCESS_KEY
+  #   secretName: aws-vault-secret
+  #   secretKey: AWS_SECRET_ACCESS_KEY
+
+  # - envName: VAULT_AWSKMS_SEAL_KEY_ID
+  #   secretName: aws-vault-secret
+  #   secretKey: VAULT_AWSKMS_SEAL_KEY_ID
+
+  # Comment: Adds secret-based environment variables for Azure Key Vault integration.
+  # Original value: [] (empty array)
+
+  volumes:
+    - name: userconfig-vault-ha-tls
+      secret:
+        defaultMode: 420
+        secretName: vault-ha-tls
+  # Comment: Mounts a secret volume containing TLS certificates.
+  # Original value: null (no volumes defined)
+
+  volumeMounts:
+    - mountPath: /vault/userconfig/vault-ha-tls
+      name: userconfig-vault-ha-tls
+      readOnly: true
+  # Comment: Mounts the TLS secret volume into the Vault container.
+  # Original value: null (no volume mounts defined)
+
+  ha:
+    enabled: true
+    # Comment: Enables High Availability mode.
+    # Original value: false
+
+    replicas: 3
+    # Comment: Sets the number of replicas for HA mode.
+    # Original value: 3 (no change, but relevant since HA is enabled)
+
+    apiAddr: "<URL_OF_VAULT_API>"
+    # Comment: Sets a specific API address for HA mode.
+    # Original value: null (defaults to Pod IP)
+
+    raft:
+      enabled: true
+      # Comment: Enables Raft integrated storage for HA.
+      # Original value: false
+
+      setNodeId: true
+      # Comment: Sets the Raft node ID to the pod name.
+      # Original value: false
+
+      config: |
+        cluster_name     = "vault-integrated-storage"
+        disable_mlock    = true
+        enable_multiseal = true
+
+        storage "raft" {
+          path    = "/vault/data/"
+          retry_join {
+            leader_api_addr = "https://vault-0.vault-internal:8200"
+            leader_ca_cert_file = "/vault/userconfig/vault-ha-tls/vault.ca"
+            leader_client_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+            leader_client_key_file = "/vault/userconfig/vault-ha-tls/vault.key"
+          }
+          retry_join {
+            leader_api_addr = "https://vault-1.vault-internal:8200"
+            leader_ca_cert_file = "/vault/userconfig/vault-ha-tls/vault.ca"
+            leader_client_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+            leader_client_key_file = "/vault/userconfig/vault-ha-tls/vault.key"
+          }
+          retry_join {
+            leader_api_addr = "https://vault-2.vault-internal:8200"
+            leader_ca_cert_file = "/vault/userconfig/vault-ha-tls/vault.ca"
+            leader_client_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+            leader_client_key_file = "/vault/userconfig/vault-ha-tls/vault.key"
+          }
+        }
+
+        listener "tcp" {
+          tls_disable = 0
+          address = "0.0.0.0:8200"
+          cluster_address = "0.0.0.0:8201"
+          
+          tls_cert_file = "/vault/userconfig/vault-ha-tls/vault.crt"
+          tls_key_file  = "/vault/userconfig/vault-ha-tls/vault.key"
+          tls_client_ca_file = "/vault/userconfig/vault-ha-tls/vault.ca"
+        }
+
+        service_registration "kubernetes" {}
+
+        # For Auto unseal with AWS KMS
+        # seal "awskms" {
+        #   region = "<REGION_OF_KMS>"
+        # }
+
+        # For Auto unseal with Azure Key Vault
+        # seal "azurekeyvault" {}
+
+        ui = true
+
+        telemetry {
+          prometheus_retention_time = "0h"
+          disable_hostname = true
+          dogstatsd_addr = "telegraf.monitoring.svc.cluster.local:8125"
+          enable_hostname_label = true
+        }
+
+# Vault UI
+ui:
+  enabled: true
+  # Comment: Enables the Vault UI service.
+  # Original value: false
+
+  serviceType: "ClusterIP"
+  # Comment: Sets the service type for the UI to ClusterIP.
+  # Original value: "ClusterIP" (no change)
+
+  externalPort: 8200
+  # Comment: Specifies the external port for the UI.
+  # Original value: 8200 (no change)
+
+  annotations: {}
+  # Comment: No additional annotations for the UI service.
+  # Original value: {} (empty)

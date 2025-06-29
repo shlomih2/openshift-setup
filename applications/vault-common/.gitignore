@@ -1,0 +1,29 @@
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Crash logs
+crash.log
+
+# Terraform plan output
+*.tfplan
+
+# Sensitive files
+secrets.auto.tfvars
+terraform.tfvars
+
+# Provider cache & plugins (Terraform 0.13+)
+.terraform/
+
+# CLI configuration
+.terraform.lock.hcl
+
+# Core dumps
+core.*
+
+# VSCode settings (if applicable)
+.vscode/
+
+# OS-specific
+.DS_Store
+Thumbs.db

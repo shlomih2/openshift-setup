@@ -1,0 +1,24 @@
+controller:
+  manager:
+    # Prevent untransformed (raw) secret data from ever being stored.
+    globalTransformationOptions:
+      excludeRaw: true
+
+  replicas: 2
+
+defaultVaultConnection:
+  enabled: true
+  address: "https://vault-internal.vault.svc.cluster.local:8200" # Must use HTTPS to secure in‑transit data.
+  caCertSecret: "vault-ca" # A Kubernetes Secret containing the trusted CA bundle.
+  tlsServerName: "vault.apps.demo.terasky.demo" # Ensures correct SNI during TLS handshake.
+
+defaultAuthMethod:
+  enabled: true
+  kubernetes:
+    role: "vault-operator-role" # Pre‑configured Vault role for Kubernetes auth.
+    serviceAccount: "vault-auth-sa"
+    tokenAudiences:
+      - "vault"
+
+tests:
+  enabled: false
