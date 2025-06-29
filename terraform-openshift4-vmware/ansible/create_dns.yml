@@ -1,8 +1,8 @@
-- name: Create DNS A Record
+- name: Create DNS A Records
   hosts: dns
   gather_facts: no
   tasks:
-    - name: Add DNS A record api
+    - name: Add DNS A record for API endpoint
       win_dns_record:
         name: "{{ dns_name }}"
         type: A
@@ -10,11 +10,10 @@
         zone: "{{ dns_zone }}"
         state: present
 
-    - name: Add DNS A record ingress
+    - name: Add DNS A record for Ingress wildcard
       win_dns_record:
         name: "{{ dns_name_ingress }}"
         type: A
         value: "{{ dns_ip_ingress }}"
         zone: "{{ dns_zone }}"
         state: present
-

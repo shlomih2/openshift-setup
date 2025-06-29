@@ -62,7 +62,7 @@ data "vsphere_resource_pool" "resource_pool" {
 }
 
 resource "vsphere_folder" "folder" {
-  count = var.vsphere_preexisting_folder && var.vsphere_folder != "" ? 0 : 1
+  count = var.vsphere_preexisting_folder != "" ? 1 : 0
 
   path          = var.vsphere_folder == "" ? var.cluster_id : var.vsphere_folder
   type          = "vm"
@@ -253,5 +253,5 @@ module "storage_vm" {
 }
 
 output "kubeconfig" {
-  value = "Run this command to set the kubeconfig: export KUBECONFIG=/home/k8s/openshift/terraform-openshift4-vmware/installer/${var.cluster_id}/auth/kubeconfig"
+  value = "Run this command to set the kubeconfig: \nexport KUBECONFIG=/home/k8s/openshift/terraform-openshift4-vmware/installer/${var.cluster_id}/auth/kubeconfig"
 }
